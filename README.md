@@ -36,7 +36,33 @@
 
 ## Setup
 
-TBD...
+Add this example to your GitHub Actions workflow configuration (e.g. `.github/main.workflow`).
+
+```
+workflow "assign_review_by_comment by issue_comment" {
+  # By the design of GitHub Actions, this action requires that the workflow is includeded in your _default branch_.
+  # See https://developer.github.com/actions/creating-workflows/workflow-configuration-options/#workflow-attributes
+  on = "issue_comment"
+  resolves = ["assign_review_by_comment"]
+}
+
+workflow "assign_review_by_comment by PR review comment" {
+  # By the design of GitHub Actions, this action requires that the workflow is includeded in your pull request
+  # which you want to use this action.
+  # See https://developer.github.com/actions/creating-workflows/workflow-configuration-options/#workflow-attributes
+  on = "pull_request_review"
+  resolves = ["assign_review_by_comment"]
+}
+
+action "assign_review_by_comment" {
+  # see https://developer.github.com/actions/creating-workflows/workflow-configuration-options/#action-blocks
+  # `master` branch might be broken sometimes.
+  # `stable` branch is more stable, but the evolving is slow. 
+  uses = "saneyuki/github-action-auto-assign@master"
+  # This field is required.
+  secrets = ["GITHUB_TOKEN"]
+}
+```
 
 
 ## Limitations
