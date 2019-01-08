@@ -1,8 +1,58 @@
 'use strict';
 
+const assert = require('assert');
+
 const TOKEN_WHITE_SPACE = 0;
 const TOKEN_EOF = 1;
 const TOKEN_IDENTIFIER = 2;
+const TOKEN_OPERATOR = 3;
+const TOKEN_INVALIDATE = 4;
+
+class BackableStringIterator {
+    /**
+     * @param {string} str
+     */
+    constructor(str) {
+        this._iter = str[Symbol.iterator]();
+        this._prevCache = null;
+        this._prev = null;
+    }
+
+    next() {
+        const prev = this._prev;
+        if (prev !== null) {
+            this._prev = null;
+            this._prevCache = prev;
+            return {
+                done: false,
+                value: prev,
+            };
+        }
+        assert.strictEqual(prev, null, 'this._prev must be null');
+
+        const { done, value, } = this._iter.next();
+        if (done) {
+            this._prevCache = null;
+        } else {
+            this._prevCache = value;
+        }
+
+        return {
+            done,
+            value,
+        };
+    }
+
+    back() {
+        assert.notStrictEqual(this._prevCache, null, 'this._prev must not be null');
+        this._prev = this._prevCache;
+        this._prevCache = null;
+    }
+
+    [Symbol.iterator]() {
+        return this;
+    }
+}
 
 class LowLevelToken {
     constructor(type, val) {
@@ -20,59 +70,134 @@ function isWhiteSpace(char) {
     return /\s/u.test(char);
 }
 
-function* lowLevelTokenizeString(input) {
-    let candidate = '';
-    let mode = 0; // normal=0, skip whitespace=1, scan identifier=2
+/**
+ *  @param {string} char
+ *  @returns    {boolean}
+ */
+function isOperatorFragment(char) {
+    return (char === '|') || (char === '&');
+}
 
-    const resetCandidateWith = (ch) => {
-        candidate = ch;
-    };
+class LowLevelScanner {
+    constructor(source) {
+        this._sourceIter = new BackableStringIterator(source);
+        this._hasReachedEof = false;
+    }
 
-    const pushToCandidate = (ch) => {
-        candidate += ch;
-    };
+    _destroy() {
+        this._sourceIter = null;
+        this._hasReachedEof = true;
+    }
 
-    for (const ch of input) {
-        switch (mode) {
-            case 0:
-                if (isWhiteSpace(ch)) {
-                    mode = 1;
-                } else {
-                    mode = 2;
-                }
-                resetCandidateWith(ch);
-                continue;
-            case 1:
-                if (isWhiteSpace(ch)) {
-                    pushToCandidate(ch);
-                } else {
-                    yield new LowLevelToken(TOKEN_WHITE_SPACE, candidate);
-                    mode = 2;
-                    resetCandidateWith(ch);
-                }
-                continue;
-            case 2:
-                if (isWhiteSpace(ch)) {
-                    yield new LowLevelToken(TOKEN_IDENTIFIER, candidate);
-                    mode = 1;
-                    resetCandidateWith(ch);
-                } else {
-                    pushToCandidate(ch);
-                }
-                continue;
+    next() {
+        if (this._hasReachedEof) {
+            return {
+                done: true,
+            };
         }
+
+        const value = this._scan();
+        if (value.type === TOKEN_EOF) {
+            this._destroy();
+        }
+
+        return {
+            done: false,
+            value,
+        };
     }
 
-    switch (mode) {
-        case 1:
-            yield new LowLevelToken(TOKEN_WHITE_SPACE, candidate);
-            break;
-        case 2:
-            yield new LowLevelToken(TOKEN_IDENTIFIER, candidate);
-            break;
+    _scan() {
+        const sourceIter = this._sourceIter;
+
+        const { done, value: char, } = sourceIter.next();
+        if (done) {
+            const t = new LowLevelToken(TOKEN_EOF, null);
+            return t;
+        }
+
+        if (isWhiteSpace(char)) {
+            return this._scanWhiteSpace(char);
+        }
+
+        if (isOperatorFragment(char)) {
+            return this._scanOperator(char);
+        }
+
+        return this._scanIdentifier(char);
     }
 
-    yield new LowLevelToken(TOKEN_EOF, '');
+    _scanWhiteSpace(char) {
+        const sourceIter = this._sourceIter;
+        let buffer = char;
+        for (;;) {
+            const { done, value } = sourceIter.next();
+            if (done) {
+                break;
+            }
+
+            if (!isWhiteSpace(value)) {
+                sourceIter.back();
+                break;
+            }
+
+            buffer += value;
+        }
+
+        const t = new LowLevelToken(TOKEN_WHITE_SPACE, buffer);
+        return t;
+    }
+
+    _scanIdentifier(char) {
+        const sourceIter = this._sourceIter;
+        let buffer = char;
+        for (;;) {
+            const { done, value } = sourceIter.next();
+            if (done) {
+                break;
+            }
+
+            if (isWhiteSpace(value)) {
+                this._sourceIter.back();
+                break;
+            }
+
+            buffer += value;
+        }
+
+        const t = new LowLevelToken(TOKEN_IDENTIFIER, buffer);
+        return t;
+    }
+
+    _scanOperator(char) {
+        const sourceIter = this._sourceIter;
+        let buffer = char;
+
+        const { done, value } = sourceIter.next();
+        if (done) {
+            const t = new LowLevelToken(TOKEN_INVALIDATE, buffer);
+            return t;
+        }
+
+        if (!isOperatorFragment(value)) {
+            const t = new LowLevelToken(TOKEN_INVALIDATE, buffer);
+            return t;
+        }
+
+        if (char !== value) {
+            sourceIter.back();
+            const t = new LowLevelToken(TOKEN_INVALIDATE, buffer);
+            return t;
+        }
+
+        buffer += value;
+        const t = new LowLevelToken(TOKEN_OPERATOR, buffer);
+        return t;
+    }
+
+    [Symbol.iterator]() {
+        return this;
+    }
 }
 
 const TokenType = Object.freeze({
@@ -120,7 +245,7 @@ function* createHighLevelToken(token) {
 }
 
 function* tokenizeHighLevel(string) {
-    const tokenStream = lowLevelTokenizeString(string);
+    const tokenStream = new LowLevelScanner(string);
     for (const token of tokenStream) {
         switch (token.type) {
             case TOKEN_WHITE_SPACE:
@@ -129,6 +254,10 @@ function* tokenizeHighLevel(string) {
                 return;
             case TOKEN_IDENTIFIER:
                 yield* createHighLevelToken(token);
+                continue;
+            case TOKEN_OPERATOR:
+                continue;
+            case TOKEN_INVALIDATE:
                 continue;
         }
     }
