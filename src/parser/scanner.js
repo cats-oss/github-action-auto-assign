@@ -48,19 +48,29 @@ class BackableStringIterator {
     }
 }
 
-const LowLevelTokenType = Object.freeze({
+const TokenType = Object.freeze({
     WhiteSpace: 0,
     Eof: 1,
-    Identifier: 2,
-    Operator: 3,
-    Invalid: 4,
-    Separator: 5,
-    ListSeparator: 6,
-    ReviewDirective: 7,
-    UserName: 8,
+    Unknown: 2,
+    Invalid: 3,
+
+    Identifier: 10,
+    UserName: 11,
+
+    Separator: 20,
+    ListSeparator: 21,
+
+    Directive: 30,
+    ReviewDirective: 31,
+    AssignReviewerDirective: 32,
+    AcceptPullRequestDirective: 33,
+    AcceptPullRequestWithReviewerNameDirective: 34,
+    RejectPullRequestDirective: 35,
+
+    Operator: 40,
 });
 
-class LowLevelToken {
+class Token {
     constructor(type, val) {
         this.type = type;
         this.value = val;
@@ -134,7 +144,7 @@ function isPartOfIdentifier(char) {
     return !isWhiteSpace(char) && !isOperatorFragment(char) && !isSeparator(char) && !isIdCall(char) && !isReviewOperatorAndIsNotPartOfUserId(char);
 }
 
-class LowLevelScanner {
+class Scanner {
     constructor(source) {
         this._sourceIter = new BackableStringIterator(source);
         this._hasReachedEof = false;
@@ -153,7 +163,7 @@ class LowLevelScanner {
         }
 
         const value = this._scan();
-        if (value.type === LowLevelTokenType.Eof) {
+        if (value.type === TokenType.Eof) {
             this._destroy();
         }
 
@@ -168,7 +178,7 @@ class LowLevelScanner {
 
         const { done, value: char, } = sourceIter.next();
         if (done) {
-            const t = new LowLevelToken(LowLevelTokenType.Eof, null);
+            const t = new Token(TokenType.Eof, null);
             return t;
         }
 
@@ -212,7 +222,7 @@ class LowLevelScanner {
             buffer += value;
         }
 
-        const t = new LowLevelToken(LowLevelTokenType.WhiteSpace, buffer);
+        const t = new Token(TokenType.WhiteSpace, buffer);
         return t;
     }
 
@@ -233,7 +243,7 @@ class LowLevelScanner {
             buffer += value;
         }
 
-        const t = new LowLevelToken(LowLevelTokenType.Identifier, buffer);
+        const t = new Token(TokenType.Identifier, buffer);
         return t;
     }
 
@@ -243,32 +253,32 @@ class LowLevelScanner {
 
         const { done, value } = sourceIter.next();
         if (done) {
-            const t = new LowLevelToken(LowLevelTokenType.Invalid, buffer);
+            const t = new Token(TokenType.Invalid, buffer);
             return t;
         }
 
         if (!isOperatorFragment(value)) {
-            const t = new LowLevelToken(LowLevelTokenType.Invalid, buffer);
+            const t = new Token(TokenType.Invalid, buffer);
             return t;
         }
 
         if (char !== value) {
             sourceIter.back();
-            const t = new LowLevelToken(LowLevelTokenType.Invalid, buffer);
+            const t = new Token(TokenType.Invalid, buffer);
             return t;
         }
 
         buffer += value;
-        const t = new LowLevelToken(LowLevelTokenType.Operator, buffer);
+        const t = new Token(TokenType.Operator, buffer);
         return t;
     }
 
     _scanSeparator(char) {
         switch (char) {
             case CHAR_LIST_SEPATOR:
-                return new LowLevelToken(LowLevelTokenType.ListSeparator, char);
+                return new Token(TokenType.ListSeparator, char);
             default:
-                return new LowLevelToken(LowLevelTokenType.Separator, char);
+                return new Token(TokenType.Separator, char);
         }
     }
 
@@ -278,13 +288,13 @@ class LowLevelScanner {
 
         const { done, value } = sourceIter.next();
         if (done) {
-            const t = new LowLevelToken(LowLevelTokenType.Directive, char);
+            const t = new Token(TokenType.Directive, char);
             return t;
         }
 
         if (isReviewOperator(value)) {
             buffer += value;
-            const t = new LowLevelToken(LowLevelTokenType.ReviewDirective, buffer);
+            const t = new Token(TokenType.ReviewDirective, buffer);
             return t;
         }
 
@@ -309,7 +319,7 @@ class LowLevelScanner {
             buffer += value;
         }
 
-        const t = new LowLevelToken(LowLevelTokenType.UserName, buffer);
+        const t = new Token(TokenType.UserName, buffer);
         return t;
     }
 
@@ -318,67 +328,46 @@ class LowLevelScanner {
     }
 }
 
-const TokenType = Object.freeze({
-    Directive: 0,
-    AcceptPullRequest: 1,
-    RejectPullRequest: 2,
-    AssignReviewer: 3,
-    UserName: 4,
-    Unknown: 5,
-    Eof: 6,
-    Separator: 7,
-    ListSeparator: 8,
-    AcceptPullRequestWithReviewers: 9,
-    Identifier: 10,
-});
-
-class HighLevelToken {
-    constructor(type, value) {
-        this.type = type;
-        this.value = value;
-    }
-}
-
 function* createDirectiveToken(token) {
     const { value } = token;
     switch (value) {
         case 'r?':
-            yield new HighLevelToken(TokenType.Directive, null);
-            yield new HighLevelToken(TokenType.AssignReviewer, null);
+            yield new Token(TokenType.Directive, null);
+            yield new Token(TokenType.AssignReviewerDirective, null);
             break;
         case 'r-':
-            yield new HighLevelToken(TokenType.Directive, null);
-            yield new HighLevelToken(TokenType.RejectPullRequest, null);
+            yield new Token(TokenType.Directive, null);
+            yield new Token(TokenType.RejectPullRequestDirective, null);
             break;
         case 'r+':
-            yield new HighLevelToken(TokenType.Directive, null);
-            yield new HighLevelToken(TokenType.AcceptPullRequest, null);
+            yield new Token(TokenType.Directive, null);
+            yield new Token(TokenType.AcceptPullRequestDirective, null);
             break;
         case 'r=':
-            yield new HighLevelToken(TokenType.Directive, null);
-            yield new HighLevelToken(TokenType.AcceptPullRequestWithReviewers, null);
+            yield new Token(TokenType.Directive, null);
+            yield new Token(TokenType.AcceptPullRequestWithReviewerNameDirective, null);
             break;
     }
 }
 
 function* tokenizeHighLevel(string) {
-    const tokenStream = new LowLevelScanner(string);
+    const tokenStream = new Scanner(string);
     for (const token of tokenStream) {
         switch (token.type) {
-            case LowLevelTokenType.Identifier:
-                yield new HighLevelToken(TokenType.Identifier, token.value);
+            case TokenType.Identifier:
+                yield token;
                 continue;
-            case LowLevelTokenType.ReviewDirective:
+            case TokenType.ReviewDirective:
                 yield* createDirectiveToken(token);
                 continue;
-            case LowLevelTokenType.ListSeparator:
-                yield new HighLevelToken(TokenType.ListSeparator, null);
+            case TokenType.ListSeparator:
+                yield token;
                 continue;
-            case LowLevelTokenType.Separator:
-                yield new HighLevelToken(TokenType.Separator, null);
+            case TokenType.Separator:
+                yield token;
                 continue;
-            case LowLevelTokenType.UserName:
-                yield new HighLevelToken(TokenType.UserName, token.value);
+            case TokenType.UserName:
+                yield token;
                 continue;
             default:
                 continue;

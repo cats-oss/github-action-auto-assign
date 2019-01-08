@@ -49,13 +49,13 @@ function parseString(input) {
         }
 
         switch (token.type) {
-            case TokenType.AcceptPullRequest:
+            case TokenType.AcceptPullRequestDirective:
                 return parseAcceptPullRequest(tokenStream);
-            case TokenType.AcceptPullRequestWithReviewers:
+            case TokenType.AcceptPullRequestWithReviewerNameDirective:
                 return parseAcceptPullRequestWithReviewers(tokenStream);
-            case TokenType.RejectPullRequest:
+            case TokenType.RejectPullRequestDirective:
                 return parseRejectPullRequest(tokenStream);
-            case TokenType.AssignReviewer:
+            case TokenType.AssignReviewerDirective:
                 return parseAssignReviewer(tokenStream);
             default:
                 console.log(`this token is not supported by here: ${token.type}`);
