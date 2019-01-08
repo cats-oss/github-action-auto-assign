@@ -10,4 +10,4 @@ ADD yarn.lock /app/yarn.lock
 WORKDIR /app
 RUN ["yarn", "--production"]
 
-ENTRYPOINT ["node", "/src/index.js"]
+ENTRYPOINT ["node", "/app/src/index.js"]
