@@ -75,7 +75,7 @@ const REQUEST_REVIEW_TEST_CASE_LIST = [
 ];
 
 const APPROVE_REVIEW_TEST_CASE_LIST = [
-    testCase('r+', expected(CommandType.AcceptPullRequest, [])),
+    testCase('r+', expected(CommandType.AcceptPullRequest, null)),
     // TODO: testCase('r+ @bar', null),
     // TODO: testCase('r+ @bar @foo', null),
     // TODO: testCase('   r+ @bar \n @foo', null),
@@ -91,7 +91,7 @@ const APPROVE_REVIEW_TEST_CASE_LIST = [
 ];
 
 const REJECT_REVIEW_TEST_CASE_LIST = [
-    testCase('r-', expected(CommandType.RejectPullRequest, [])),
+    testCase('r-', expected(CommandType.RejectPullRequest, null)),
     // TODO: testCase('r- @bar', null),
     // TODO: testCase('r- @bar @foo', null),
     // TODO: testCase('   r-  @bar \n @foo', null),

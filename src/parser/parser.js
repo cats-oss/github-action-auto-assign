@@ -67,14 +67,15 @@ function parseString(input) {
         }
     }
 
-    const user = [];
-    for (const token of tokenStream) {
-        if (token.type === TokenType.UserName) {
-            user.push(token.value);
-        }
-    }
-
+    let user = null;
     if (commandType === CommandType.AssignReviewer) {
+        user = [];
+        for (const token of tokenStream) {
+            if (token.type === TokenType.UserName) {
+                user.push(token.value);
+            }
+        }
+
         if (user.length === 0) {
             console.log(`user.length is zero`);
             return null;
