@@ -4,4 +4,6 @@ src/**/__tests__/*
 
 .eslintignore
 .eslintrc.js
+LICENSE.MIT
 Makefile
+README.md
