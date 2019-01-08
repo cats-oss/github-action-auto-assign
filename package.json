@@ -10,5 +10,8 @@
   "devDependencies": {
     "eslint": "^5.12.0",
     "eslint-config-fluct": "https://github.com/voyagegroup/eslint-config-fluct/archive/d62dacdcfcdb68b9d0416fb75abca516a4d938d7.tar.gz"
+  },
+  "dependencies": {
+    "@octokit/rest": "^16.6.0"
   }
 }
