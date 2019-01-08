@@ -17,6 +17,10 @@
 
 * You can use these command as a comment for issue or pull request or pull request review.
 * Your comment change some status of the issue you commented.
+* This actions treats `S-` prefixed labels exclusively.
+  * e.g. If your pull request is labeled with `S-a` and `S-b`,
+    then this action replaces them with `S-c`.
+* If your comment has multiple line, this action interprets only the first line of it.
 
 ### `r? @username1 @username2`
 
