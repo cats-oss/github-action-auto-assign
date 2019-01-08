@@ -67,5 +67,15 @@ action "assign_review_by_comment" {
 
 ## Limitations
 
-* By the Limitation of the current GitHub Actions, this would not works your repository well.
+* By the Limitation of the current GitHub Actions, this might not works your repository well.
+    * Because GitHub Actions is still in beta.
     * We confirms this works with a private repository. But we have not confirmed yet to work with a public one.
+
+
+## Known Problems
+
+### This action could not interact with my comment in a few seconds.
+
+* We know that this action takes ~30sec to react user comment.
+* We think this is the current or fundamental limitation of GitHub Actions.
+  See [#6](https://github.com/cats-oss/github-action-auto-assign/issues/6).
