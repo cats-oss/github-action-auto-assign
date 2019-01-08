@@ -43,7 +43,6 @@ function parseString(input) {
         }
     }
 
-    let commandType = null;
     {
         const { done, value: token, } = tokenStream.next();
         if (done) {
@@ -53,36 +52,42 @@ function parseString(input) {
 
         switch (token.type) {
             case TokenType.AcceptPullRequest:
-                commandType = CommandType.AcceptPullRequest;
-                break;
+                return parseAcceptPullRequest();
             case TokenType.RejectPullRequest:
-                commandType = CommandType.RejectPullRequest;
-                break;
+                return parseRejectPullRequest();
             case TokenType.AssignReviewer:
-                commandType = CommandType.AssignReviewer;
-                break;
+                return parseAssignReviewer(tokenStream);
             default:
                 console.log(`this token is not supported by here: ${token.type}`);
                 return null;
         }
     }
+}
 
-    let user = null;
-    if (commandType === CommandType.AssignReviewer) {
-        user = [];
-        for (const token of tokenStream) {
-            if (token.type === TokenType.UserName) {
-                user.push(token.value);
-            }
-        }
+function parseAcceptPullRequest() {
+    const c = new Command(CommandType.AcceptPullRequest, null);
+    return c;
+}
 
-        if (user.length === 0) {
-            console.log(`user.length is zero`);
-            return null;
+function parseRejectPullRequest() {
+    const c = new Command(CommandType.RejectPullRequest, null);
+    return c;
+}
+
+function parseAssignReviewer(tokenStream) {
+    const user = [];
+    for (const token of tokenStream) {
+        if (token.type === TokenType.UserName) {
+            user.push(token.value);
         }
     }
 
-    const c = new Command(commandType, user);
+    if (user.length === 0) {
+        console.log(`user.length is zero`);
+        return null;
+    }
+
+    const c = new Command(CommandType.AssignReviewer, user);
     return c;
 }
 
