@@ -52,9 +52,9 @@ function parseString(input) {
 
         switch (token.type) {
             case TokenType.AcceptPullRequest:
-                return parseAcceptPullRequest();
+                return parseAcceptPullRequest(tokenStream);
             case TokenType.RejectPullRequest:
-                return parseRejectPullRequest();
+                return parseRejectPullRequest(tokenStream);
             case TokenType.AssignReviewer:
                 return parseAssignReviewer(tokenStream);
             default:
@@ -64,12 +64,22 @@ function parseString(input) {
     }
 }
 
-function parseAcceptPullRequest() {
+function parseAcceptPullRequest(tokenStream) {
+    const restTokenList = Array.from(tokenStream);
+    if (restTokenList.length > 0) {
+        return null;
+    }
+
     const c = new Command(CommandType.AcceptPullRequest, null);
     return c;
 }
 
-function parseRejectPullRequest() {
+function parseRejectPullRequest(tokenStream) {
+    const restTokenList = Array.from(tokenStream);
+    if (restTokenList.length > 0) {
+        return null;
+    }
+
     const c = new Command(CommandType.RejectPullRequest, null);
     return c;
 }

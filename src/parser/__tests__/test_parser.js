@@ -76,11 +76,11 @@ const REQUEST_REVIEW_TEST_CASE_LIST = [
 
 const APPROVE_REVIEW_TEST_CASE_LIST = [
     testCase('r+', expected(CommandType.AcceptPullRequest, null)),
-    // TODO: testCase('r+ @bar', null),
-    // TODO: testCase('r+ @bar @foo', null),
-    // TODO: testCase('   r+ @bar \n @foo', null),
-    // TODO: testCase('    r+    ', null),
-    // TODO: testCase('r+ foo', null),
+    testCase('r+ @bar', null),
+    testCase('r+ @bar @foo', null),
+    testCase('   r+ @bar \n @foo', null),
+    testCase('    r+    ', expected(CommandType.AcceptPullRequest, null)),
+    testCase('r+ foo', null),
     testCase('\n r+ @bar', null),
     testCase('r +', null),
     // TODO: testCase('r=bar', expected(CommandType.AcceptPullRequest, null)),
@@ -92,11 +92,11 @@ const APPROVE_REVIEW_TEST_CASE_LIST = [
 
 const REJECT_REVIEW_TEST_CASE_LIST = [
     testCase('r-', expected(CommandType.RejectPullRequest, null)),
-    // TODO: testCase('r- @bar', null),
-    // TODO: testCase('r- @bar @foo', null),
-    // TODO: testCase('   r-  @bar \n @foo', null),
-    // TODO: testCase('    r-    ', null),
-    // TODO: testCase('r- foo', null),
+    testCase('r- @bar', null),
+    testCase('r- @bar @foo', null),
+    testCase('   r-  @bar \n @foo', null),
+    testCase('    r-    ', expected(CommandType.RejectPullRequest, null)),
+    testCase('r- foo', null),
     testCase('\n r- @bar', null),
     testCase('r -', null),
 ];
