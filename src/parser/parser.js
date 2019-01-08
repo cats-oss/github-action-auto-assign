@@ -36,7 +36,7 @@ function parseString(input) {
             return null;
         }
 
-        if (token.type === TokenType.Directive) {
+        if (token.type === TokenType.ReviewDirective) {
             break;
         }
     }
@@ -67,7 +67,6 @@ function parseString(input) {
 function* filterUnrelatedToken(tokenStream) {
     for (const token of tokenStream) {
         switch (token.type) {
-            case TokenType.Directive:
             case TokenType.ReviewDirective:
             case TokenType.AssignReviewerDirective:
             case TokenType.RejectPullRequestDirective:

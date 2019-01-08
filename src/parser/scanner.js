@@ -60,12 +60,11 @@ const TokenType = Object.freeze({
     Separator: 20,
     ListSeparator: 21,
 
-    Directive: 30,
-    ReviewDirective: 31,
-    AssignReviewerDirective: 32,
-    AcceptPullRequestDirective: 33,
-    AcceptPullRequestWithReviewerNameDirective: 34,
-    RejectPullRequestDirective: 35,
+    ReviewDirective: 30,
+    AssignReviewerDirective: 31,
+    AcceptPullRequestDirective: 32,
+    AcceptPullRequestWithReviewerNameDirective: 33,
+    RejectPullRequestDirective: 34,
 
     Operator: 40,
 });
@@ -293,7 +292,7 @@ class Scanner {
 
         const { done, value } = sourceIter.next();
         if (done) {
-            const t = new Token(TokenType.Directive, char);
+            const t = new Token(TokenType.ReviewDirective, char);
             return t;
         }
 
@@ -351,7 +350,7 @@ function* tokenizeHighLevel(string) {
             case TokenType.RejectPullRequestDirective:
             case TokenType.AcceptPullRequestDirective:
             case TokenType.AcceptPullRequestWithReviewerNameDirective:
-                yield new Token(TokenType.Directive, null);
+                yield new Token(TokenType.ReviewDirective, null);
                 yield token;
                 continue;
             default:
