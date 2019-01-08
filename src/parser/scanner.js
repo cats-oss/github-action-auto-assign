@@ -2,12 +2,6 @@
 
 const assert = require('assert');
 
-const TOKEN_WHITE_SPACE = 0;
-const TOKEN_EOF = 1;
-const TOKEN_IDENTIFIER = 2;
-const TOKEN_OPERATOR = 3;
-const TOKEN_INVALIDATE = 4;
-
 class BackableStringIterator {
     /**
      * @param {string} str
@@ -54,6 +48,18 @@ class BackableStringIterator {
     }
 }
 
+const LowLevelTokenType = Object.freeze({
+    WhiteSpace: 0,
+    Eof: 1,
+    Identifier: 2,
+    Operator: 3,
+    Invalid: 4,
+    Separator: 5,
+    ListSeparator: 6,
+    ReviewDirective: 7,
+    UserName: 8,
+});
+
 class LowLevelToken {
     constructor(type, val) {
         this.type = type;
@@ -78,6 +84,56 @@ function isOperatorFragment(char) {
     return (char === '|') || (char === '&');
 }
 
+const CHAR_LIST_SEPATOR = ',';
+
+/**
+ *  @param {string} char
+ *  @returns    {boolean}
+ */
+function isSeparator(char) {
+    return (char === CHAR_LIST_SEPATOR) || (char === ';') || (char === '.');
+}
+
+/**
+ *  @param {string} char
+ *  @returns    {boolean}
+ */
+function isIdCall(char) {
+    return char === '@';
+}
+
+/**
+ *  @param {string} char
+ *  @returns    {boolean}
+ */
+function isReviewDirective(char) {
+    return char === 'r';
+}
+
+/**
+ *  @param {string} char
+ *  @returns    {boolean}
+ */
+function isReviewOperatorAndIsNotPartOfUserId(char) {
+    return (char === '?') || (char === '+') || (char === '=');
+}
+
+/**
+ *  @param {string} char
+ *  @returns    {boolean}
+ */
+function isReviewOperator(char) {
+    return isReviewOperatorAndIsNotPartOfUserId(char) || (char === '-');
+}
+
+/**
+ *  @param {string} char
+ *  @returns    {boolean}
+ */
+function isPartOfIdentifier(char) {
+    return !isWhiteSpace(char) && !isOperatorFragment(char) && !isSeparator(char) && !isIdCall(char) && !isReviewOperatorAndIsNotPartOfUserId(char);
+}
+
 class LowLevelScanner {
     constructor(source) {
         this._sourceIter = new BackableStringIterator(source);
@@ -97,7 +153,7 @@ class LowLevelScanner {
         }
 
         const value = this._scan();
-        if (value.type === TOKEN_EOF) {
+        if (value.type === LowLevelTokenType.Eof) {
             this._destroy();
         }
 
@@ -112,7 +168,7 @@ class LowLevelScanner {
 
         const { done, value: char, } = sourceIter.next();
         if (done) {
-            const t = new LowLevelToken(TOKEN_EOF, null);
+            const t = new LowLevelToken(LowLevelTokenType.Eof, null);
             return t;
         }
 
@@ -122,6 +178,18 @@ class LowLevelScanner {
 
         if (isOperatorFragment(char)) {
             return this._scanOperator(char);
+        }
+
+        if (isSeparator(char)) {
+            return this._scanSeparator(char);
+        }
+
+        if (isReviewDirective(char)) {
+            return this._scanReviewDirective(char);
+        }
+
+        if (isIdCall(char)) {
+            return this._scanUsername();
         }
 
         return this._scanIdentifier(char);
@@ -144,7 +212,7 @@ class LowLevelScanner {
             buffer += value;
         }
 
-        const t = new LowLevelToken(TOKEN_WHITE_SPACE, buffer);
+        const t = new LowLevelToken(LowLevelTokenType.WhiteSpace, buffer);
         return t;
     }
 
@@ -157,7 +225,7 @@ class LowLevelScanner {
                 break;
             }
 
-            if (isWhiteSpace(value)) {
+            if (!isPartOfIdentifier(value)) {
                 this._sourceIter.back();
                 break;
             }
@@ -165,7 +233,7 @@ class LowLevelScanner {
             buffer += value;
         }
 
-        const t = new LowLevelToken(TOKEN_IDENTIFIER, buffer);
+        const t = new LowLevelToken(LowLevelTokenType.Identifier, buffer);
         return t;
     }
 
@@ -175,23 +243,73 @@ class LowLevelScanner {
 
         const { done, value } = sourceIter.next();
         if (done) {
-            const t = new LowLevelToken(TOKEN_INVALIDATE, buffer);
+            const t = new LowLevelToken(LowLevelTokenType.Invalid, buffer);
             return t;
         }
 
         if (!isOperatorFragment(value)) {
-            const t = new LowLevelToken(TOKEN_INVALIDATE, buffer);
+            const t = new LowLevelToken(LowLevelTokenType.Invalid, buffer);
             return t;
         }
 
         if (char !== value) {
             sourceIter.back();
-            const t = new LowLevelToken(TOKEN_INVALIDATE, buffer);
+            const t = new LowLevelToken(LowLevelTokenType.Invalid, buffer);
             return t;
         }
 
         buffer += value;
-        const t = new LowLevelToken(TOKEN_OPERATOR, buffer);
+        const t = new LowLevelToken(LowLevelTokenType.Operator, buffer);
+        return t;
+    }
+
+    _scanSeparator(char) {
+        switch (char) {
+            case CHAR_LIST_SEPATOR:
+                return new LowLevelToken(LowLevelTokenType.ListSeparator, char);
+            default:
+                return new LowLevelToken(LowLevelTokenType.Separator, char);
+        }
+    }
+
+    _scanReviewDirective(char) {
+        const sourceIter = this._sourceIter;
+        let buffer = char;
+
+        const { done, value } = sourceIter.next();
+        if (done) {
+            const t = new LowLevelToken(LowLevelTokenType.Directive, char);
+            return t;
+        }
+
+        if (isReviewOperator(value)) {
+            buffer += value;
+            const t = new LowLevelToken(LowLevelTokenType.ReviewDirective, buffer);
+            return t;
+        }
+
+        sourceIter.back();
+        return this._scanIdentifier(char);
+    }
+
+    _scanUsername() {
+        const sourceIter = this._sourceIter;
+        let buffer = '';
+        for (;;) {
+            const { done, value } = sourceIter.next();
+            if (done) {
+                break;
+            }
+
+            if (!isPartOfIdentifier(value)) {
+                this._sourceIter.back();
+                break;
+            }
+
+            buffer += value;
+        }
+
+        const t = new LowLevelToken(LowLevelTokenType.UserName, buffer);
         return t;
     }
 
@@ -207,7 +325,11 @@ const TokenType = Object.freeze({
     AssignReviewer: 3,
     UserName: 4,
     Unknown: 5,
-    Eof: 6
+    Eof: 6,
+    Separator: 7,
+    ListSeparator: 8,
+    AcceptPullRequestWithReviewers: 9,
+    Identifier: 10,
 });
 
 class HighLevelToken {
@@ -217,7 +339,7 @@ class HighLevelToken {
     }
 }
 
-function* createHighLevelToken(token) {
+function* createDirectiveToken(token) {
     const { value } = token;
     switch (value) {
         case 'r?':
@@ -232,14 +354,9 @@ function* createHighLevelToken(token) {
             yield new HighLevelToken(TokenType.Directive, null);
             yield new HighLevelToken(TokenType.AcceptPullRequest, null);
             break;
-        default:
-            // TODO: support `r=username` syntax.
-            if (value.startsWith('@')) {
-                const v = value.replace(/^@/u, '');
-                yield new HighLevelToken(TokenType.UserName, v);
-            } else {
-                yield new HighLevelToken(TokenType.Unknown, null);
-            }
+        case 'r=':
+            yield new HighLevelToken(TokenType.Directive, null);
+            yield new HighLevelToken(TokenType.AcceptPullRequestWithReviewers, null);
             break;
     }
 }
@@ -248,16 +365,22 @@ function* tokenizeHighLevel(string) {
     const tokenStream = new LowLevelScanner(string);
     for (const token of tokenStream) {
         switch (token.type) {
-            case TOKEN_WHITE_SPACE:
+            case LowLevelTokenType.Identifier:
+                yield new HighLevelToken(TokenType.Identifier, token.value);
                 continue;
-            case TOKEN_EOF:
-                return;
-            case TOKEN_IDENTIFIER:
-                yield* createHighLevelToken(token);
+            case LowLevelTokenType.ReviewDirective:
+                yield* createDirectiveToken(token);
                 continue;
-            case TOKEN_OPERATOR:
+            case LowLevelTokenType.ListSeparator:
+                yield new HighLevelToken(TokenType.ListSeparator, null);
                 continue;
-            case TOKEN_INVALIDATE:
+            case LowLevelTokenType.Separator:
+                yield new HighLevelToken(TokenType.Separator, null);
+                continue;
+            case LowLevelTokenType.UserName:
+                yield new HighLevelToken(TokenType.UserName, token.value);
+                continue;
+            default:
                 continue;
         }
     }

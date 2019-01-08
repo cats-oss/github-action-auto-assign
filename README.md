@@ -21,13 +21,15 @@
   * e.g. If your pull request is labeled with `S-a` and `S-b`,
     then this action replaces them with `S-c`.
 * If your comment has multiple line, this action interprets only the first line of it.
+* To support the command style which [bors-ng]() uses, you can write `botname <this action command>`.
+  * e.g. `bors r+` is ok.
 
 ### `r? @username1 @username2`
 
 * This assigns `@username1` and `@username2` to _assignees_ filed.
 * This adds the label `S-awaiting-review`.
 
-### `r+`
+### `r+` or `r=username1, username2`
 
 * This assigns the user who opens the issue to _assignees_ filed.
 * This adds the label `S-awaiting-merge`.
