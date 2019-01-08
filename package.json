@@ -1,0 +1,10 @@
+{
+  "name": "github-action-auto-assign",
+  "version": "0.0.0",
+  "description": "GitHub Actions to assign a reviewer automatically like highfive or popuko",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT"
+}
