@@ -29,19 +29,25 @@ function withBotName(array) {
 }
 
 function withPrefixLikeBotName(array) {
-    return array.map(({ input }) => {
-        return {
+    const result = [];
+    for (const { input } of array) {
+        if (/^\s/u.test(input)) {
+            continue;
+        }
+
+        result.push({
             input: 'bors' + input,
             expected: null,
-        };
-    });
+        });
+    }
+    return result;
 }
 
 function withMultipleBotName(array) {
-    return array.map(({ input }) => {
+    return array.map(({ input, expected }) => {
         return {
             input: 'bors1 bors2 ' + input,
-            expected: null,
+            expected,
         };
     });
 }
@@ -104,23 +110,23 @@ const REJECT_REVIEW_TEST_CASE_LIST = [
 const TEST_CASE_LIST = [
     ...REQUEST_REVIEW_TEST_CASE_LIST,
     ...[
-    // TODO:    ...withBotName(REQUEST_REVIEW_TEST_CASE_LIST),
-    // TODO:    ...withPrefixLikeBotName(REQUEST_REVIEW_TEST_CASE_LIST),
-    // TODO:    ...withMultipleBotName(REQUEST_REVIEW_TEST_CASE_LIST),
+        ...withBotName(REQUEST_REVIEW_TEST_CASE_LIST),
+        ...withPrefixLikeBotName(REQUEST_REVIEW_TEST_CASE_LIST),
+        ...withMultipleBotName(REQUEST_REVIEW_TEST_CASE_LIST),
     ],
 
     ...APPROVE_REVIEW_TEST_CASE_LIST,
     ...[
-    // TODO:    ...withBotName(APPROVE_REVIEW_TEST_CASE_LIST),
-    // TODO:    ...withPrefixLikeBotName(APPROVE_REVIEW_TEST_CASE_LIST),
-    // TODO:    ...withMultipleBotName(APPROVE_REVIEW_TEST_CASE_LIST),
+        ...withBotName(APPROVE_REVIEW_TEST_CASE_LIST),
+        ...withPrefixLikeBotName(APPROVE_REVIEW_TEST_CASE_LIST),
+        ...withMultipleBotName(APPROVE_REVIEW_TEST_CASE_LIST),
     ],
 
     ...REJECT_REVIEW_TEST_CASE_LIST,
     ...[
-    // TODO:    ...withBotName(REJECT_REVIEW_TEST_CASE_LIST),
-    // TODO:    ...withPrefixLikeBotName(REJECT_REVIEW_TEST_CASE_LIST),
-    // TODO:    ...withMultipleBotName(REJECT_REVIEW_TEST_CASE_LIST),
+        ...withBotName(REJECT_REVIEW_TEST_CASE_LIST),
+        ...withPrefixLikeBotName(REJECT_REVIEW_TEST_CASE_LIST),
+        ...withMultipleBotName(REJECT_REVIEW_TEST_CASE_LIST),
     ],
 
 ];

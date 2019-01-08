@@ -30,16 +30,14 @@ function parseString(input) {
 
     const tokenStream = tokenizeString(firstLine);
 
-    {
+    for (;;) {
         const { done, value: token, } = tokenStream.next();
         if (done) {
-            console.log('the token iterator is empty');
             return null;
         }
 
-        if (token.type !== TokenType.Directive) {
-            console.log(`the first token is not .Directive, actually ${token.type}`);
-            return null;
+        if (token.type === TokenType.Directive) {
+            break;
         }
     }
 
