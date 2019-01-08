@@ -5,7 +5,7 @@ const fs = require('fs').promises;
 
 const octokit = require('@octokit/rest')();
 
-const { parseString, CommandType } = require('./parser');
+const { parseString, CommandType } = require('./parser/index');
 const {
     assignReviewer,
     acceptPullRequest,
