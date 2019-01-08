@@ -5,6 +5,8 @@ const assert = require('assert');
 const TOKEN_WHITE_SPACE = 0;
 const TOKEN_EOF = 1;
 const TOKEN_IDENTIFIER = 2;
+const TOKEN_OPERATOR = 3;
+const TOKEN_INVALIDATE = 4;
 
 class BackableStringIterator {
     /**
@@ -68,6 +70,14 @@ function isWhiteSpace(char) {
     return /\s/u.test(char);
 }
 
+/**
+ *  @param {string} char
+ *  @returns    {boolean}
+ */
+function isOperatorFragment(char) {
+    return (char === '|') || (char === '&');
+}
+
 class LowLevelScanner {
     constructor(source) {
         this._sourceIter = new BackableStringIterator(source);
@@ -108,6 +118,10 @@ class LowLevelScanner {
 
         if (isWhiteSpace(char)) {
             return this._scanWhiteSpace(char);
+        }
+
+        if (isOperatorFragment(char)) {
+            return this._scanOperator(char);
         }
 
         return this._scanIdentifier(char);
@@ -152,6 +166,32 @@ class LowLevelScanner {
         }
 
         const t = new LowLevelToken(TOKEN_IDENTIFIER, buffer);
+        return t;
+    }
+
+    _scanOperator(char) {
+        const sourceIter = this._sourceIter;
+        let buffer = char;
+
+        const { done, value } = sourceIter.next();
+        if (done) {
+            const t = new LowLevelToken(TOKEN_INVALIDATE, buffer);
+            return t;
+        }
+
+        if (!isOperatorFragment(value)) {
+            const t = new LowLevelToken(TOKEN_INVALIDATE, buffer);
+            return t;
+        }
+
+        if (char !== value) {
+            sourceIter.back();
+            const t = new LowLevelToken(TOKEN_INVALIDATE, buffer);
+            return t;
+        }
+
+        buffer += value;
+        const t = new LowLevelToken(TOKEN_OPERATOR, buffer);
         return t;
     }
 
@@ -214,6 +254,10 @@ function* tokenizeHighLevel(string) {
                 return;
             case TOKEN_IDENTIFIER:
                 yield* createHighLevelToken(token);
+                continue;
+            case TOKEN_OPERATOR:
+                continue;
+            case TOKEN_INVALIDATE:
                 continue;
         }
     }
