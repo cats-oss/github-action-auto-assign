@@ -8,10 +8,25 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "ava": "^1.0.1",
     "eslint": "^5.12.0",
     "eslint-config-fluct": "https://github.com/voyagegroup/eslint-config-fluct/archive/d62dacdcfcdb68b9d0416fb75abca516a4d938d7.tar.gz"
   },
   "dependencies": {
     "@octokit/rest": "^16.6.0"
+  },
+  "ava": {
+    "files": [
+      "src/**/__tests__/**/*.js"
+    ],
+    "babel": {
+      "extensions": [
+        "js"
+      ],
+      "testOptions": {
+        "presets": [],
+        "babelrc": false
+      }
+    }
   }
 }

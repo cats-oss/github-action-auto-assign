@@ -88,4 +88,7 @@ function parseString(input) {
 module.exports = Object.freeze({
     parseString,
     CommandType,
+
+    // export for testing
+    Command,
 });

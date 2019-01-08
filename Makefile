@@ -1,5 +1,5 @@
 NPM_MOD_DIR := $(CURDIR)/node_modules
-NPM_BIN := $(NPM_MOD_DIR)/.bin
+NPM_BIN_DIR := $(NPM_MOD_DIR)/.bin
 
 all: help
 
@@ -9,10 +9,14 @@ help:
 	@exit 1
 
 # Test
-test: lint ## Run tests & lints for all.
+test: lint ava ## Run tests & lints for all.
 
 lint: eslint
 
 .PHONY: eslint
 eslint:
-	$(NPM_BIN)/eslint --ext=js,jsx,mjs $(CURDIR)
+	$(NPM_BIN_DIR)/eslint --ext=js,jsx,mjs $(CURDIR)
+
+.PHONY: ava
+ava:
+	$(NPM_BIN_DIR)/ava
