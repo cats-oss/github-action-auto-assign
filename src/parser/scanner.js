@@ -120,12 +120,17 @@ function isReviewDirective(char) {
     return char === 'r';
 }
 
+const CHAR_REVIEW_OPERATOR_QUESTION = '?';
+const CHAR_REVIEW_OPERATOR_PLUS = '+';
+const CHAR_REVIEW_OPERATOR_EQUAL = '=';
+const CHAR_REVIEW_OPERATOR_MINUS = '-';
+
 /**
  *  @param {string} char
  *  @returns    {boolean}
  */
 function isReviewOperatorAndIsNotPartOfUserId(char) {
-    return (char === '?') || (char === '+') || (char === '=');
+    return (char === CHAR_REVIEW_OPERATOR_QUESTION) || (char === CHAR_REVIEW_OPERATOR_PLUS) || (char === CHAR_REVIEW_OPERATOR_EQUAL);
 }
 
 /**
@@ -133,7 +138,7 @@ function isReviewOperatorAndIsNotPartOfUserId(char) {
  *  @returns    {boolean}
  */
 function isReviewOperator(char) {
-    return isReviewOperatorAndIsNotPartOfUserId(char) || (char === '-');
+    return isReviewOperatorAndIsNotPartOfUserId(char) || (char === CHAR_REVIEW_OPERATOR_MINUS);
 }
 
 /**
@@ -294,8 +299,18 @@ class Scanner {
 
         if (isReviewOperator(value)) {
             buffer += value;
-            const t = new Token(TokenType.ReviewDirective, buffer);
-            return t;
+            switch (value) {
+                case CHAR_REVIEW_OPERATOR_QUESTION:
+                    return new Token(TokenType.AssignReviewerDirective, buffer);
+                case CHAR_REVIEW_OPERATOR_PLUS:
+                    return new Token(TokenType.AcceptPullRequestDirective, buffer);
+                case CHAR_REVIEW_OPERATOR_EQUAL:
+                    return new Token(TokenType.AcceptPullRequestWithReviewerNameDirective, buffer);
+                case CHAR_REVIEW_OPERATOR_MINUS:
+                    return new Token(TokenType.RejectPullRequestDirective, buffer);
+                default:
+                    throw new RangeError(`unrachable with isReviewOperator: ${value}`);
+            }
         }
 
         sourceIter.back();
@@ -328,54 +343,29 @@ class Scanner {
     }
 }
 
-function* createDirectiveToken(token) {
-    const { value } = token;
-    switch (value) {
-        case 'r?':
-            yield new Token(TokenType.Directive, null);
-            yield new Token(TokenType.AssignReviewerDirective, null);
-            break;
-        case 'r-':
-            yield new Token(TokenType.Directive, null);
-            yield new Token(TokenType.RejectPullRequestDirective, null);
-            break;
-        case 'r+':
-            yield new Token(TokenType.Directive, null);
-            yield new Token(TokenType.AcceptPullRequestDirective, null);
-            break;
-        case 'r=':
-            yield new Token(TokenType.Directive, null);
-            yield new Token(TokenType.AcceptPullRequestWithReviewerNameDirective, null);
-            break;
-    }
-}
-
 function* tokenizeHighLevel(string) {
     const tokenStream = new Scanner(string);
     for (const token of tokenStream) {
         switch (token.type) {
-            case TokenType.Identifier:
-                yield token;
-                continue;
-            case TokenType.ReviewDirective:
-                yield* createDirectiveToken(token);
-                continue;
-            case TokenType.ListSeparator:
-                yield token;
-                continue;
-            case TokenType.Separator:
-                yield token;
-                continue;
-            case TokenType.UserName:
+            case TokenType.AssignReviewerDirective:
+            case TokenType.RejectPullRequestDirective:
+            case TokenType.AcceptPullRequestDirective:
+            case TokenType.AcceptPullRequestWithReviewerNameDirective:
+                yield new Token(TokenType.Directive, null);
                 yield token;
                 continue;
             default:
+                yield token;
                 continue;
         }
     }
 }
 
+function* tokenizeString(string) {
+    yield* tokenizeHighLevel(string);
+}
+
 module.exports = Object.freeze({
     TokenType,
-    tokenizeString: tokenizeHighLevel
+    tokenizeString,
 });

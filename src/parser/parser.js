@@ -28,7 +28,7 @@ function parseString(input) {
     // Treat the first line as the command line for us.
     const firstLine = lines[0];
 
-    const tokenStream = tokenizeString(firstLine);
+    const tokenStream = filterUnrelatedToken(tokenizeString(firstLine));
 
     for (;;) {
         const { done, value: token, } = tokenStream.next();
@@ -64,9 +64,29 @@ function parseString(input) {
     }
 }
 
+function* filterUnrelatedToken(tokenStream) {
+    for (const token of tokenStream) {
+        switch (token.type) {
+            case TokenType.Directive:
+            case TokenType.ReviewDirective:
+            case TokenType.AssignReviewerDirective:
+            case TokenType.RejectPullRequestDirective:
+            case TokenType.AcceptPullRequestDirective:
+            case TokenType.AcceptPullRequestWithReviewerNameDirective:
+            case TokenType.Identifier:
+            case TokenType.ListSeparator:
+            case TokenType.Separator:
+            case TokenType.UserName:
+                yield token;
+                continue;
+        }
+    }
+}
+
 function parseAcceptPullRequest(tokenStream) {
     const restTokenList = Array.from(tokenStream);
     if (restTokenList.length > 0) {
+        console.log(`restTokenList.length is zero`);
         return null;
     }
 
@@ -101,6 +121,7 @@ function parseAcceptPullRequestWithReviewers(tokenStream) {
 function parseRejectPullRequest(tokenStream) {
     const restTokenList = Array.from(tokenStream);
     if (restTokenList.length > 0) {
+        console.log(`restTokenList.length is zero`);
         return null;
     }
 
