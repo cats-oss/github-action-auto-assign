@@ -2,12 +2,6 @@
 
 const assert = require('assert');
 
-const TOKEN_WHITE_SPACE = 0;
-const TOKEN_EOF = 1;
-const TOKEN_IDENTIFIER = 2;
-const TOKEN_OPERATOR = 3;
-const TOKEN_INVALIDATE = 4;
-
 class BackableStringIterator {
     /**
      * @param {string} str
@@ -54,6 +48,14 @@ class BackableStringIterator {
     }
 }
 
+const LowLevelTokenType = Object.freeze({
+    WhiteSpace: 0,
+    Eof: 1,
+    Identifier: 2,
+    Operator: 3,
+    Invalid: 4,
+});
+
 class LowLevelToken {
     constructor(type, val) {
         this.type = type;
@@ -97,7 +99,7 @@ class LowLevelScanner {
         }
 
         const value = this._scan();
-        if (value.type === TOKEN_EOF) {
+        if (value.type === LowLevelTokenType.Eof) {
             this._destroy();
         }
 
@@ -112,7 +114,7 @@ class LowLevelScanner {
 
         const { done, value: char, } = sourceIter.next();
         if (done) {
-            const t = new LowLevelToken(TOKEN_EOF, null);
+            const t = new LowLevelToken(LowLevelTokenType.Eof, null);
             return t;
         }
 
@@ -144,7 +146,7 @@ class LowLevelScanner {
             buffer += value;
         }
 
-        const t = new LowLevelToken(TOKEN_WHITE_SPACE, buffer);
+        const t = new LowLevelToken(LowLevelTokenType.WhiteSpace, buffer);
         return t;
     }
 
@@ -165,7 +167,7 @@ class LowLevelScanner {
             buffer += value;
         }
 
-        const t = new LowLevelToken(TOKEN_IDENTIFIER, buffer);
+        const t = new LowLevelToken(LowLevelTokenType.Identifier, buffer);
         return t;
     }
 
@@ -175,23 +177,23 @@ class LowLevelScanner {
 
         const { done, value } = sourceIter.next();
         if (done) {
-            const t = new LowLevelToken(TOKEN_INVALIDATE, buffer);
+            const t = new LowLevelToken(LowLevelTokenType.Invalid, buffer);
             return t;
         }
 
         if (!isOperatorFragment(value)) {
-            const t = new LowLevelToken(TOKEN_INVALIDATE, buffer);
+            const t = new LowLevelToken(LowLevelTokenType.Invalid, buffer);
             return t;
         }
 
         if (char !== value) {
             sourceIter.back();
-            const t = new LowLevelToken(TOKEN_INVALIDATE, buffer);
+            const t = new LowLevelToken(LowLevelTokenType.Invalid, buffer);
             return t;
         }
 
         buffer += value;
-        const t = new LowLevelToken(TOKEN_OPERATOR, buffer);
+        const t = new LowLevelToken(LowLevelTokenType.Operator, buffer);
         return t;
     }
 
@@ -248,16 +250,16 @@ function* tokenizeHighLevel(string) {
     const tokenStream = new LowLevelScanner(string);
     for (const token of tokenStream) {
         switch (token.type) {
-            case TOKEN_WHITE_SPACE:
+            case LowLevelTokenType.WhiteSpace:
                 continue;
-            case TOKEN_EOF:
+            case LowLevelTokenType.Eof:
                 return;
-            case TOKEN_IDENTIFIER:
+            case LowLevelTokenType.Identifier:
                 yield* createHighLevelToken(token);
                 continue;
-            case TOKEN_OPERATOR:
+            case LowLevelTokenType.Operator:
                 continue;
-            case TOKEN_INVALIDATE:
+            case LowLevelTokenType.Invalid:
                 continue;
         }
     }
