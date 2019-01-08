@@ -58,7 +58,7 @@ action "assign_review_by_comment" {
   # see https://developer.github.com/actions/creating-workflows/workflow-configuration-options/#action-blocks
   # `master` branch might be broken sometimes.
   # `stable` branch is more stable, but the evolving is slow. 
-  uses = "saneyuki/github-action-auto-assign@master"
+  uses = "cats-oss/github-action-auto-assign@master"
   # This field is required.
   secrets = ["GITHUB_TOKEN"]
 }
