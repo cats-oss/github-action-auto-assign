@@ -30,20 +30,17 @@ function parseString(input) {
 
     const tokenStream = tokenizeString(firstLine);
 
-    {
+    for (;;) {
         const { done, value: token, } = tokenStream.next();
         if (done) {
-            console.log('the token iterator is empty');
             return null;
         }
 
-        if (token.type !== TokenType.Directive) {
-            console.log(`the first token is not .Directive, actually ${token.type}`);
-            return null;
+        if (token.type === TokenType.Directive) {
+            break;
         }
     }
 
-    let commandType = null;
     {
         const { done, value: token, } = tokenStream.next();
         if (done) {
@@ -53,20 +50,39 @@ function parseString(input) {
 
         switch (token.type) {
             case TokenType.AcceptPullRequest:
-                commandType = CommandType.AcceptPullRequest;
-                break;
+                return parseAcceptPullRequest(tokenStream);
             case TokenType.RejectPullRequest:
-                commandType = CommandType.RejectPullRequest;
-                break;
+                return parseRejectPullRequest(tokenStream);
             case TokenType.AssignReviewer:
-                commandType = CommandType.AssignReviewer;
-                break;
+                return parseAssignReviewer(tokenStream);
             default:
                 console.log(`this token is not supported by here: ${token.type}`);
                 return null;
         }
     }
+}
 
+function parseAcceptPullRequest(tokenStream) {
+    const restTokenList = Array.from(tokenStream);
+    if (restTokenList.length > 0) {
+        return null;
+    }
+
+    const c = new Command(CommandType.AcceptPullRequest, null);
+    return c;
+}
+
+function parseRejectPullRequest(tokenStream) {
+    const restTokenList = Array.from(tokenStream);
+    if (restTokenList.length > 0) {
+        return null;
+    }
+
+    const c = new Command(CommandType.RejectPullRequest, null);
+    return c;
+}
+
+function parseAssignReviewer(tokenStream) {
     const user = [];
     for (const token of tokenStream) {
         if (token.type === TokenType.UserName) {
@@ -74,14 +90,12 @@ function parseString(input) {
         }
     }
 
-    if (commandType === CommandType.AssignReviewer) {
-        if (user.length === 0) {
-            console.log(`user.length is zero`);
-            return null;
-        }
+    if (user.length === 0) {
+        console.log(`user.length is zero`);
+        return null;
     }
 
-    const c = new Command(commandType, user);
+    const c = new Command(CommandType.AssignReviewer, user);
     return c;
 }
 
