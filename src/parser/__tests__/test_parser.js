@@ -89,11 +89,17 @@ const APPROVE_REVIEW_TEST_CASE_LIST = [
     testCase('r+ foo', null),
     testCase('\n r+ @bar', null),
     testCase('r +', null),
-    // TODO: testCase('r=bar', expected(CommandType.AcceptPullRequest, null)),
-    // TODO: testCase('r=bar,foo', null),
-    // TODO: testCase('r=', null),
-    // TODO: testCase('r = bar', null),
-    // TODO: testCase('r= \n foo', null),
+    testCase('r=bar', expected(CommandType.AcceptPullRequest, ['bar'])),
+    testCase('r=bar,foo', expected(CommandType.AcceptPullRequest, ['bar', 'foo'])),
+    testCase('r=bar, foo', expected(CommandType.AcceptPullRequest, ['bar', 'foo'])),
+    testCase('r=bar,   foo,   ', expected(CommandType.AcceptPullRequest, ['bar', 'foo'])),
+    testCase('r=bar;foo', null),
+    testCase('r=bar;foo;', null),
+    testCase('r=bar.foo.', null),
+    testCase('r=bar.foo,', null),
+    testCase('r=', null),
+    testCase('r = bar', null),
+    testCase('r= \n foo', null),
 ];
 
 const REJECT_REVIEW_TEST_CASE_LIST = [

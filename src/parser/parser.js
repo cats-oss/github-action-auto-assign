@@ -51,6 +51,8 @@ function parseString(input) {
         switch (token.type) {
             case TokenType.AcceptPullRequest:
                 return parseAcceptPullRequest(tokenStream);
+            case TokenType.AcceptPullRequestWithReviewers:
+                return parseAcceptPullRequestWithReviewers(tokenStream);
             case TokenType.RejectPullRequest:
                 return parseRejectPullRequest(tokenStream);
             case TokenType.AssignReviewer:
@@ -69,6 +71,30 @@ function parseAcceptPullRequest(tokenStream) {
     }
 
     const c = new Command(CommandType.AcceptPullRequest, null);
+    return c;
+}
+
+function parseAcceptPullRequestWithReviewers(tokenStream) {
+    const user = [];
+    for (const token of tokenStream) {
+        switch (token.type) {
+            case TokenType.UserName:
+                user.push(token.value);
+                break;
+            case TokenType.Separator:
+                return null;
+            case TokenType.Identifier:
+                user.push(token.value);
+                break;
+        }
+    }
+
+    if (user.length === 0) {
+        console.log(`user.length is zero`);
+        return null;
+    }
+
+    const c = new Command(CommandType.AcceptPullRequest, user);
     return c;
 }
 

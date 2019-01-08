@@ -54,6 +54,10 @@ const LowLevelTokenType = Object.freeze({
     Identifier: 2,
     Operator: 3,
     Invalid: 4,
+    Separator: 5,
+    ListSeparator: 6,
+    ReviewDirective: 7,
+    UserName: 8,
 });
 
 class LowLevelToken {
@@ -78,6 +82,56 @@ function isWhiteSpace(char) {
  */
 function isOperatorFragment(char) {
     return (char === '|') || (char === '&');
+}
+
+const CHAR_LIST_SEPATOR = ',';
+
+/**
+ *  @param {string} char
+ *  @returns    {boolean}
+ */
+function isSeparator(char) {
+    return (char === CHAR_LIST_SEPATOR) || (char === ';') || (char === '.');
+}
+
+/**
+ *  @param {string} char
+ *  @returns    {boolean}
+ */
+function isIdCall(char) {
+    return char === '@';
+}
+
+/**
+ *  @param {string} char
+ *  @returns    {boolean}
+ */
+function isReviewDirective(char) {
+    return char === 'r';
+}
+
+/**
+ *  @param {string} char
+ *  @returns    {boolean}
+ */
+function isReviewOperatorAndIsNotPartOfUserId(char) {
+    return (char === '?') || (char === '+') || (char === '=');
+}
+
+/**
+ *  @param {string} char
+ *  @returns    {boolean}
+ */
+function isReviewOperator(char) {
+    return isReviewOperatorAndIsNotPartOfUserId(char) || (char === '-');
+}
+
+/**
+ *  @param {string} char
+ *  @returns    {boolean}
+ */
+function isPartOfIdentifier(char) {
+    return !isWhiteSpace(char) && !isOperatorFragment(char) && !isSeparator(char) && !isIdCall(char) && !isReviewOperatorAndIsNotPartOfUserId(char);
 }
 
 class LowLevelScanner {
@@ -126,6 +180,18 @@ class LowLevelScanner {
             return this._scanOperator(char);
         }
 
+        if (isSeparator(char)) {
+            return this._scanSeparator(char);
+        }
+
+        if (isReviewDirective(char)) {
+            return this._scanReviewDirective(char);
+        }
+
+        if (isIdCall(char)) {
+            return this._scanUsername();
+        }
+
         return this._scanIdentifier(char);
     }
 
@@ -159,7 +225,7 @@ class LowLevelScanner {
                 break;
             }
 
-            if (isWhiteSpace(value)) {
+            if (!isPartOfIdentifier(value)) {
                 this._sourceIter.back();
                 break;
             }
@@ -197,6 +263,56 @@ class LowLevelScanner {
         return t;
     }
 
+    _scanSeparator(char) {
+        switch (char) {
+            case CHAR_LIST_SEPATOR:
+                return new LowLevelToken(LowLevelTokenType.ListSeparator, char);
+            default:
+                return new LowLevelToken(LowLevelTokenType.Separator, char);
+        }
+    }
+
+    _scanReviewDirective(char) {
+        const sourceIter = this._sourceIter;
+        let buffer = char;
+
+        const { done, value } = sourceIter.next();
+        if (done) {
+            const t = new LowLevelToken(LowLevelTokenType.Directive, char);
+            return t;
+        }
+
+        if (isReviewOperator(value)) {
+            buffer += value;
+            const t = new LowLevelToken(LowLevelTokenType.ReviewDirective, buffer);
+            return t;
+        }
+
+        sourceIter.back();
+        return this._scanIdentifier(char);
+    }
+
+    _scanUsername() {
+        const sourceIter = this._sourceIter;
+        let buffer = '';
+        for (;;) {
+            const { done, value } = sourceIter.next();
+            if (done) {
+                break;
+            }
+
+            if (!isPartOfIdentifier(value)) {
+                this._sourceIter.back();
+                break;
+            }
+
+            buffer += value;
+        }
+
+        const t = new LowLevelToken(LowLevelTokenType.UserName, buffer);
+        return t;
+    }
+
     [Symbol.iterator]() {
         return this;
     }
@@ -209,7 +325,11 @@ const TokenType = Object.freeze({
     AssignReviewer: 3,
     UserName: 4,
     Unknown: 5,
-    Eof: 6
+    Eof: 6,
+    Separator: 7,
+    ListSeparator: 8,
+    AcceptPullRequestWithReviewers: 9,
+    Identifier: 10,
 });
 
 class HighLevelToken {
@@ -219,7 +339,7 @@ class HighLevelToken {
     }
 }
 
-function* createHighLevelToken(token) {
+function* createDirectiveToken(token) {
     const { value } = token;
     switch (value) {
         case 'r?':
@@ -234,14 +354,9 @@ function* createHighLevelToken(token) {
             yield new HighLevelToken(TokenType.Directive, null);
             yield new HighLevelToken(TokenType.AcceptPullRequest, null);
             break;
-        default:
-            // TODO: support `r=username` syntax.
-            if (value.startsWith('@')) {
-                const v = value.replace(/^@/u, '');
-                yield new HighLevelToken(TokenType.UserName, v);
-            } else {
-                yield new HighLevelToken(TokenType.Unknown, null);
-            }
+        case 'r=':
+            yield new HighLevelToken(TokenType.Directive, null);
+            yield new HighLevelToken(TokenType.AcceptPullRequestWithReviewers, null);
             break;
     }
 }
@@ -250,16 +365,22 @@ function* tokenizeHighLevel(string) {
     const tokenStream = new LowLevelScanner(string);
     for (const token of tokenStream) {
         switch (token.type) {
-            case LowLevelTokenType.WhiteSpace:
-                continue;
-            case LowLevelTokenType.Eof:
-                return;
             case LowLevelTokenType.Identifier:
-                yield* createHighLevelToken(token);
+                yield new HighLevelToken(TokenType.Identifier, token.value);
                 continue;
-            case LowLevelTokenType.Operator:
+            case LowLevelTokenType.ReviewDirective:
+                yield* createDirectiveToken(token);
                 continue;
-            case LowLevelTokenType.Invalid:
+            case LowLevelTokenType.ListSeparator:
+                yield new HighLevelToken(TokenType.ListSeparator, null);
+                continue;
+            case LowLevelTokenType.Separator:
+                yield new HighLevelToken(TokenType.Separator, null);
+                continue;
+            case LowLevelTokenType.UserName:
+                yield new HighLevelToken(TokenType.UserName, token.value);
+                continue;
+            default:
                 continue;
         }
     }
