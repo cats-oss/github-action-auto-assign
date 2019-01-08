@@ -48,19 +48,28 @@ class BackableStringIterator {
     }
 }
 
-const LowLevelTokenType = Object.freeze({
+const TokenType = Object.freeze({
     WhiteSpace: 0,
     Eof: 1,
-    Identifier: 2,
-    Operator: 3,
-    Invalid: 4,
-    Separator: 5,
-    ListSeparator: 6,
-    ReviewDirective: 7,
-    UserName: 8,
+    Unknown: 2,
+    Invalid: 3,
+
+    Identifier: 10,
+    UserName: 11,
+
+    Separator: 20,
+    ListSeparator: 21,
+
+    ReviewDirective: 30,
+    AssignReviewerDirective: 31,
+    AcceptPullRequestDirective: 32,
+    AcceptPullRequestWithReviewerNameDirective: 33,
+    RejectPullRequestDirective: 34,
+
+    Operator: 40,
 });
 
-class LowLevelToken {
+class Token {
     constructor(type, val) {
         this.type = type;
         this.value = val;
@@ -110,12 +119,17 @@ function isReviewDirective(char) {
     return char === 'r';
 }
 
+const CHAR_REVIEW_OPERATOR_QUESTION = '?';
+const CHAR_REVIEW_OPERATOR_PLUS = '+';
+const CHAR_REVIEW_OPERATOR_EQUAL = '=';
+const CHAR_REVIEW_OPERATOR_MINUS = '-';
+
 /**
  *  @param {string} char
  *  @returns    {boolean}
  */
 function isReviewOperatorAndIsNotPartOfUserId(char) {
-    return (char === '?') || (char === '+') || (char === '=');
+    return (char === CHAR_REVIEW_OPERATOR_QUESTION) || (char === CHAR_REVIEW_OPERATOR_PLUS) || (char === CHAR_REVIEW_OPERATOR_EQUAL);
 }
 
 /**
@@ -123,7 +137,7 @@ function isReviewOperatorAndIsNotPartOfUserId(char) {
  *  @returns    {boolean}
  */
 function isReviewOperator(char) {
-    return isReviewOperatorAndIsNotPartOfUserId(char) || (char === '-');
+    return isReviewOperatorAndIsNotPartOfUserId(char) || (char === CHAR_REVIEW_OPERATOR_MINUS);
 }
 
 /**
@@ -134,7 +148,7 @@ function isPartOfIdentifier(char) {
     return !isWhiteSpace(char) && !isOperatorFragment(char) && !isSeparator(char) && !isIdCall(char) && !isReviewOperatorAndIsNotPartOfUserId(char);
 }
 
-class LowLevelScanner {
+class Scanner {
     constructor(source) {
         this._sourceIter = new BackableStringIterator(source);
         this._hasReachedEof = false;
@@ -153,7 +167,7 @@ class LowLevelScanner {
         }
 
         const value = this._scan();
-        if (value.type === LowLevelTokenType.Eof) {
+        if (value.type === TokenType.Eof) {
             this._destroy();
         }
 
@@ -168,7 +182,7 @@ class LowLevelScanner {
 
         const { done, value: char, } = sourceIter.next();
         if (done) {
-            const t = new LowLevelToken(LowLevelTokenType.Eof, null);
+            const t = new Token(TokenType.Eof, null);
             return t;
         }
 
@@ -212,7 +226,7 @@ class LowLevelScanner {
             buffer += value;
         }
 
-        const t = new LowLevelToken(LowLevelTokenType.WhiteSpace, buffer);
+        const t = new Token(TokenType.WhiteSpace, buffer);
         return t;
     }
 
@@ -233,7 +247,7 @@ class LowLevelScanner {
             buffer += value;
         }
 
-        const t = new LowLevelToken(LowLevelTokenType.Identifier, buffer);
+        const t = new Token(TokenType.Identifier, buffer);
         return t;
     }
 
@@ -243,32 +257,32 @@ class LowLevelScanner {
 
         const { done, value } = sourceIter.next();
         if (done) {
-            const t = new LowLevelToken(LowLevelTokenType.Invalid, buffer);
+            const t = new Token(TokenType.Invalid, buffer);
             return t;
         }
 
         if (!isOperatorFragment(value)) {
-            const t = new LowLevelToken(LowLevelTokenType.Invalid, buffer);
+            const t = new Token(TokenType.Invalid, buffer);
             return t;
         }
 
         if (char !== value) {
             sourceIter.back();
-            const t = new LowLevelToken(LowLevelTokenType.Invalid, buffer);
+            const t = new Token(TokenType.Invalid, buffer);
             return t;
         }
 
         buffer += value;
-        const t = new LowLevelToken(LowLevelTokenType.Operator, buffer);
+        const t = new Token(TokenType.Operator, buffer);
         return t;
     }
 
     _scanSeparator(char) {
         switch (char) {
             case CHAR_LIST_SEPATOR:
-                return new LowLevelToken(LowLevelTokenType.ListSeparator, char);
+                return new Token(TokenType.ListSeparator, char);
             default:
-                return new LowLevelToken(LowLevelTokenType.Separator, char);
+                return new Token(TokenType.Separator, char);
         }
     }
 
@@ -278,14 +292,24 @@ class LowLevelScanner {
 
         const { done, value } = sourceIter.next();
         if (done) {
-            const t = new LowLevelToken(LowLevelTokenType.Directive, char);
+            const t = new Token(TokenType.ReviewDirective, char);
             return t;
         }
 
         if (isReviewOperator(value)) {
             buffer += value;
-            const t = new LowLevelToken(LowLevelTokenType.ReviewDirective, buffer);
-            return t;
+            switch (value) {
+                case CHAR_REVIEW_OPERATOR_QUESTION:
+                    return new Token(TokenType.AssignReviewerDirective, buffer);
+                case CHAR_REVIEW_OPERATOR_PLUS:
+                    return new Token(TokenType.AcceptPullRequestDirective, buffer);
+                case CHAR_REVIEW_OPERATOR_EQUAL:
+                    return new Token(TokenType.AcceptPullRequestWithReviewerNameDirective, buffer);
+                case CHAR_REVIEW_OPERATOR_MINUS:
+                    return new Token(TokenType.RejectPullRequestDirective, buffer);
+                default:
+                    throw new RangeError(`unrachable with isReviewOperator: ${value}`);
+            }
         }
 
         sourceIter.back();
@@ -309,7 +333,7 @@ class LowLevelScanner {
             buffer += value;
         }
 
-        const t = new LowLevelToken(LowLevelTokenType.UserName, buffer);
+        const t = new Token(TokenType.UserName, buffer);
         return t;
     }
 
@@ -318,75 +342,29 @@ class LowLevelScanner {
     }
 }
 
-const TokenType = Object.freeze({
-    Directive: 0,
-    AcceptPullRequest: 1,
-    RejectPullRequest: 2,
-    AssignReviewer: 3,
-    UserName: 4,
-    Unknown: 5,
-    Eof: 6,
-    Separator: 7,
-    ListSeparator: 8,
-    AcceptPullRequestWithReviewers: 9,
-    Identifier: 10,
-});
-
-class HighLevelToken {
-    constructor(type, value) {
-        this.type = type;
-        this.value = value;
-    }
-}
-
-function* createDirectiveToken(token) {
-    const { value } = token;
-    switch (value) {
-        case 'r?':
-            yield new HighLevelToken(TokenType.Directive, null);
-            yield new HighLevelToken(TokenType.AssignReviewer, null);
-            break;
-        case 'r-':
-            yield new HighLevelToken(TokenType.Directive, null);
-            yield new HighLevelToken(TokenType.RejectPullRequest, null);
-            break;
-        case 'r+':
-            yield new HighLevelToken(TokenType.Directive, null);
-            yield new HighLevelToken(TokenType.AcceptPullRequest, null);
-            break;
-        case 'r=':
-            yield new HighLevelToken(TokenType.Directive, null);
-            yield new HighLevelToken(TokenType.AcceptPullRequestWithReviewers, null);
-            break;
-    }
-}
-
 function* tokenizeHighLevel(string) {
-    const tokenStream = new LowLevelScanner(string);
+    const tokenStream = new Scanner(string);
     for (const token of tokenStream) {
         switch (token.type) {
-            case LowLevelTokenType.Identifier:
-                yield new HighLevelToken(TokenType.Identifier, token.value);
-                continue;
-            case LowLevelTokenType.ReviewDirective:
-                yield* createDirectiveToken(token);
-                continue;
-            case LowLevelTokenType.ListSeparator:
-                yield new HighLevelToken(TokenType.ListSeparator, null);
-                continue;
-            case LowLevelTokenType.Separator:
-                yield new HighLevelToken(TokenType.Separator, null);
-                continue;
-            case LowLevelTokenType.UserName:
-                yield new HighLevelToken(TokenType.UserName, token.value);
+            case TokenType.AssignReviewerDirective:
+            case TokenType.RejectPullRequestDirective:
+            case TokenType.AcceptPullRequestDirective:
+            case TokenType.AcceptPullRequestWithReviewerNameDirective:
+                yield new Token(TokenType.ReviewDirective, null);
+                yield token;
                 continue;
             default:
+                yield token;
                 continue;
         }
     }
 }
 
+function* tokenizeString(string) {
+    yield* tokenizeHighLevel(string);
+}
+
 module.exports = Object.freeze({
     TokenType,
-    tokenizeString: tokenizeHighLevel
+    tokenizeString,
 });
