@@ -36,6 +36,10 @@ function parseString(input) {
             return null;
         }
 
+        if (token.type === TokenType.Separator || token.type === TokenType.ListSeparator) {
+            return null;
+        }
+
         if (token.type === TokenType.ReviewDirective) {
             break;
         }

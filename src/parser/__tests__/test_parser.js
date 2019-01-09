@@ -113,6 +113,15 @@ const REJECT_REVIEW_TEST_CASE_LIST = [
     testCase('r -', null),
 ];
 
+// We should avoid "Delegating reviews" case in https://bors.tech/documentation/getting-started/
+const BORS_DELEGETE_COMMAND_TEST_CASE_LIST = [
+    testCase('@some-user: bors r+', null),
+    testCase('@bors[bot]: Permission denied', null),
+    testCase('@some-reviewer: bors delegate=some-user', null),
+    testCase('@bors[bot]: some-user now has permission to review this pull request.', null),
+    testCase('@bors[bot]: Added to queue', null),
+];
+
 const TEST_CASE_LIST = [
     ...REQUEST_REVIEW_TEST_CASE_LIST,
     ...[
@@ -135,6 +144,7 @@ const TEST_CASE_LIST = [
         ...withMultipleBotName(REJECT_REVIEW_TEST_CASE_LIST),
     ],
 
+    ...BORS_DELEGETE_COMMAND_TEST_CASE_LIST,
 ];
 
 for (const testCase of TEST_CASE_LIST) {
