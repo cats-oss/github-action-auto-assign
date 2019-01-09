@@ -8,6 +8,12 @@ node_js:
 env:
   - YARNPKG_VERSION=1.12.3
 
+branches:
+  except:
+    # These branches are used by bors-ng
+    - staging.tmp
+    - trying.tmp
+
 notifications:
   email: false
 
