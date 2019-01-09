@@ -148,7 +148,7 @@ function isPartOfIdentifier(char) {
     return !isWhiteSpace(char) && !isOperatorFragment(char) && !isSeparator(char) && !isIdCall(char) && !isReviewOperatorAndIsNotPartOfUserId(char);
 }
 
-class Scanner {
+class Tokenizer {
     constructor(source) {
         this._sourceIter = new BackableStringIterator(source);
         this._hasReachedEof = false;
@@ -368,7 +368,7 @@ function scanUsername(charIter) {
 }
 
 function* tokenizeHighLevel(string) {
-    const tokenStream = new Scanner(string);
+    const tokenStream = new Tokenizer(string);
     for (const token of tokenStream) {
         switch (token.type) {
             case TokenType.AssignReviewerDirective:
