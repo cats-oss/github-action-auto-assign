@@ -1,5 +1,8 @@
 # GitHub Action to assign a reviewer by comment command.
 
+[![Build Status](https://travis-ci.com/cats-oss/github-action-auto-assign.svg?branch=master)](https://travis-ci.com/cats-oss/github-action-auto-assign)
+
+
 * This works as [GitHub Actions](https://developer.github.com/actions/).
 * This assigns a reviewer and change a label by special comment command. 
 * This behaves like [highfive](https://github.com/servo/highfive) or [popuko](https://github.com/voyagegroup/popuko)

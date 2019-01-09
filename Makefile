@@ -20,3 +20,6 @@ eslint:
 .PHONY: ava
 ava:
 	$(NPM_BIN_DIR)/ava
+
+# CI
+ci: test
