@@ -100,7 +100,7 @@ const CHAR_LIST_SEPATOR = ',';
  *  @returns    {boolean}
  */
 function isSeparator(char) {
-    return (char === CHAR_LIST_SEPATOR) || (char === ';') || (char === '.');
+    return (char === CHAR_LIST_SEPATOR) || (char === ':') || (char === ';') || (char === '.');
 }
 
 /**
