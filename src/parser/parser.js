@@ -3,7 +3,7 @@
 const {
     TokenType,
     tokenizeString,
-} = require('./scanner');
+} = require('./tokenizer');
 
 const CommandType = Object.freeze({
     AcceptPullRequest: 1,
