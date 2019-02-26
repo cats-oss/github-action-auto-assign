@@ -1,6 +1,7 @@
 # GitHub Action to assign a reviewer by comment command.
 
 [![Build Status](https://travis-ci.com/cats-oss/github-action-auto-assign.svg?branch=master)](https://travis-ci.com/cats-oss/github-action-auto-assign)
+[![CircleCI](https://circleci.com/gh/cats-oss/github-action-auto-assign.svg?style=svg)](https://circleci.com/gh/cats-oss/workflows/github-action-auto-assign)
 
 
 * This works as [GitHub Actions](https://developer.github.com/actions/).
