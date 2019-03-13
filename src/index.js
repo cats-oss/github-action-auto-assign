@@ -82,12 +82,10 @@ const {
             throw new RangeError('unreachable!');
     }
 
-    // TODO: assert
-    assert.strictEqual(
-        typeof commentBody,
-        'string',
-        'commentBody should be string'
-    );
+    if (typeof commentBody !== 'string') {
+        console.warn('commentBody should be string', typeof commentBody);
+        process.exit(78);
+    }
 
     const command = parseString(commentBody);
     if (command === null) {
