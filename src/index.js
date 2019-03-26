@@ -101,7 +101,7 @@ const {
             task = assignReviewer;
             break;
         case CommandType.AcceptPullRequest:
-            nextAssignee = [issueCreator];
+            nextAssignee = command.target || [issueCreator];
             task = acceptPullRequest;
             break;
         case CommandType.RejectPullRequest:
