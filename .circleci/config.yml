@@ -14,7 +14,7 @@ executors:
     build_executor:
         working_directory: *workspace_root
         docker:
-            - image: circleci/node:11
+            - image: node:11-stretch
 
 
 ###########################################
