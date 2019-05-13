@@ -7,7 +7,7 @@
 // http://eslint.org/docs/configuring/#comments-in-configuration-files
 module.exports = {
     'extends': [
-        './node_modules/eslint-config-fluct/config/eslintrc_core.js',
+        './node_modules/eslint-config-abema/config/eslintrc_core.js',
     ],
 
     'parserOptions': {
