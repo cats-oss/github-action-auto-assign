@@ -1,0 +1,16 @@
+version: 1
+
+update_configs:
+  - package_manager: "javascript"
+    directory: "/"
+    update_schedule: "weekly"
+    default_labels:
+      - "A-dependency"
+      - "I-dependency-gardening"
+    version_requirement_updates: "increase_versions"
+  - package_manager: "docker"
+    directory: "/"
+    update_schedule: "weekly"
+    default_labels:
+      - "A-docker-image"
+      - "I-dependency-gardening"
