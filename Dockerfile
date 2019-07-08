@@ -1,4 +1,4 @@
-FROM node:12.4-alpine
+FROM node:12.6-alpine
 
 LABEL "com.github.actions.name"="auto_assign"
 LABEL "com.github.actions.description"="Auto assign by your comment like highfive or popuko"
