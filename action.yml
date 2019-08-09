@@ -1,0 +1,5 @@
+name: 'Auto assign a reviewer by comment command'
+description: 'Auto assign by your comment like highfive or popuko'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
