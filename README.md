@@ -3,7 +3,7 @@
 [![CircleCI](https://circleci.com/gh/cats-oss/github-action-auto-assign.svg?style=svg)](https://circleci.com/gh/cats-oss/workflows/github-action-auto-assign)
 
 
-* This works as [GitHub Actions](https://developer.github.com/actions/).
+* This works as [GitHub Actions](https://help.github.com/en/articles/about-github-actions).
 * This assigns a reviewer and change a label by special comment command. 
 * This behaves like [highfive](https://github.com/servo/highfive) or [popuko](https://github.com/voyagegroup/popuko)
 
