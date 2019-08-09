@@ -45,7 +45,28 @@
 
 ## Setup
 
-Add this example to your GitHub Actions workflow configuration (e.g. `.github/main.workflow`).
+Add this example to your GitHub Actions [workflow configuration](https://help.github.com/en/articles/configuring-workflows).
+
+### YAML syntax
+
+```yaml
+name: assign_review_by_comment by issue_comment
+on: [issue_comment, pull_request_review]
+
+jobs:
+  assign_review_by_comment:
+    runs-on: ubuntu-latest
+    steps:
+    - name: assign_review_by_comment
+      # We recommend to use an arbitary latest version
+      # if you don't have any troubles.
+      # You can also specify `master`, but it sometimes might be broken.
+      uses: cats-oss/github-action-auto-assign@v1.0.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+### Legacy HCL syntax
 
 ```
 workflow "assign_review_by_comment by issue_comment" {
@@ -67,7 +88,7 @@ action "assign_review_by_comment" {
   # see https://developer.github.com/actions/creating-workflows/workflow-configuration-options/#action-blocks
   # `master` branch might be broken sometimes.
   # `stable` branch is more stable, but the evolving is slow. 
-  uses = "cats-oss/github-action-auto-assign@master"
+  uses = "cats-oss/github-action-auto-assign@v1.0.0"
   # This field is required.
   secrets = ["GITHUB_TOKEN"]
 }
