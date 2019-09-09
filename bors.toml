@@ -1,3 +1,6 @@
+# We should sort this field with a status label,
 status = [
-    "ci/circleci"
+    "build_and_test",
+    # bors does not check this status. So we should not specify this.
+    # "license/cla",
 ]
