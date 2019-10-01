@@ -61,39 +61,10 @@ jobs:
       # We recommend to use an arbitary latest version
       # if you don't have any troubles.
       # You can also specify `master`, but it sometimes might be broken.
-      uses: cats-oss/github-action-auto-assign@v1.0.0
+      uses: cats-oss/github-action-auto-assign@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
-
-### Legacy HCL syntax
-
-```
-workflow "assign_review_by_comment by issue_comment" {
-  # By the design of GitHub Actions, this action requires that the workflow is includeded in your _default branch_.
-  # See https://developer.github.com/actions/creating-workflows/workflow-configuration-options/#workflow-attributes
-  on = "issue_comment"
-  resolves = ["assign_review_by_comment"]
-}
-
-workflow "assign_review_by_comment by PR review comment" {
-  # By the design of GitHub Actions, this action requires that the workflow is includeded in your pull request
-  # which you want to use this action.
-  # See https://developer.github.com/actions/creating-workflows/workflow-configuration-options/#workflow-attributes
-  on = "pull_request_review"
-  resolves = ["assign_review_by_comment"]
-}
-
-action "assign_review_by_comment" {
-  # see https://developer.github.com/actions/creating-workflows/workflow-configuration-options/#action-blocks
-  # `master` branch might be broken sometimes.
-  # `stable` branch is more stable, but the evolving is slow. 
-  uses = "cats-oss/github-action-auto-assign@v1.0.0"
-  # This field is required.
-  secrets = ["GITHUB_TOKEN"]
-}
-```
-
 
 ## Limitations
 
