@@ -9,7 +9,7 @@ async function replaceAssignees(
     aOctoKit,
     owner,
     repo,
-    number,
+    issueNum,
     currentAssignees,
     nextAssignees
 ) {
@@ -18,16 +18,18 @@ async function replaceAssignees(
         await aOctoKit.issues.removeAssignees({
             owner,
             repo,
-            number,
+            // eslint-disable-next-line camelcase
+            issue_number: issueNum,
             assignees: currentAssignees
         });
-    // TODO: assert return value
+        // TODO: assert return value
     }
 
     const changeAssign = await aOctoKit.issues.addAssignees({
         owner,
         repo,
-        number,
+        // eslint-disable-next-line camelcase
+        issue_number: issueNum,
         assignees: nextAssignees
     });
 
@@ -37,7 +39,7 @@ async function replaceAssignees(
 async function assignReviewer(
     aOctoKit,
     repoName,
-    number,
+    issueNum,
     currentAssignees,
     nextAssignees
 ) {
@@ -46,7 +48,8 @@ async function assignReviewer(
     const response = await aOctoKit.issues.listLabelsOnIssue({
         owner,
         repo,
-        number
+        // eslint-disable-next-line camelcase
+        issue_number: issueNum,
     });
 
     const labels = response.data;
@@ -57,7 +60,8 @@ async function assignReviewer(
     const changeLabels = aOctoKit.issues.replaceLabels({
         owner,
         repo,
-        number,
+        // eslint-disable-next-line camelcase
+        issue_number: issueNum,
         labels: bleached
     });
 
@@ -65,7 +69,7 @@ async function assignReviewer(
         aOctoKit,
         owner,
         repo,
-        number,
+        issueNum,
         currentAssignees,
         nextAssignees
     );
@@ -76,7 +80,7 @@ async function assignReviewer(
 async function acceptPullRequest(
     aOctoKit,
     repoName,
-    number,
+    issueNum,
     currentAssignees,
     nextAssignees
 ) {
@@ -85,7 +89,8 @@ async function acceptPullRequest(
     const response = await aOctoKit.issues.listLabelsOnIssue({
         owner,
         repo,
-        number
+        // eslint-disable-next-line camelcase
+        issue_number: issueNum
     });
 
     const labels = response.data;
@@ -96,7 +101,8 @@ async function acceptPullRequest(
     const changeLabels = aOctoKit.issues.replaceLabels({
         owner,
         repo,
-        number,
+        // eslint-disable-next-line camelcase
+        issue_number: issueNum,
         labels: bleached
     });
 
@@ -104,7 +110,7 @@ async function acceptPullRequest(
         aOctoKit,
         owner,
         repo,
-        number,
+        issueNum,
         currentAssignees,
         nextAssignees
     );
@@ -114,7 +120,7 @@ async function acceptPullRequest(
 async function rejectPullRequest(
     aOctoKit,
     repoName,
-    number,
+    issueNum,
     currentAssignees,
     nextAssignees
 ) {
@@ -123,7 +129,8 @@ async function rejectPullRequest(
     const response = await aOctoKit.issues.listLabelsOnIssue({
         owner,
         repo,
-        number
+        // eslint-disable-next-line camelcase
+        issue_number: issueNum,
     });
 
     const labels = response.data;
@@ -134,7 +141,8 @@ async function rejectPullRequest(
     const changeLabels = aOctoKit.issues.replaceLabels({
         owner,
         repo,
-        number,
+        // eslint-disable-next-line camelcase
+        issue_number: issueNum,
         labels: bleached
     });
 
@@ -142,7 +150,7 @@ async function rejectPullRequest(
         aOctoKit,
         owner,
         repo,
-        number,
+        issueNum,
         currentAssignees,
         nextAssignees
     );

@@ -3,7 +3,7 @@
 const assert = require('assert');
 const fs = require('fs').promises;
 
-const octokit = require('@octokit/rest')();
+const Octokit = require('@octokit/rest');
 
 const { parseString, CommandType } = require('./parser/index');
 const {
@@ -35,7 +35,7 @@ const {
     );
     if (
         GITHUB_EVENT_NAME !== 'issue_comment' &&
-    GITHUB_EVENT_NAME !== 'pull_request_review'
+        GITHUB_EVENT_NAME !== 'pull_request_review'
     ) {
         throw new TypeError(`${GITHUB_EVENT_NAME} event is not supported`);
     }
@@ -112,13 +112,12 @@ const {
             throw new RangeError(JSON.stringify(command));
     }
 
-    octokit.authenticate({
-        type: 'token',
-        token: GITHUB_TOKEN
+    const octokitClient = new Octokit({
+        auth: GITHUB_TOKEN,
     });
 
     await task(
-        octokit,
+        octokitClient,
         GITHUB_REPOSITORY,
         issueNumber,
         currentAssignee,
