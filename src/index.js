@@ -83,8 +83,8 @@ const {
     }
 
     if (typeof commentBody !== 'string') {
-        console.warn('commentBody should be string', typeof commentBody);
-        process.exit(78);
+        console.warn(`commentBody should be string, but typeof \`${typeof commentBody}\`, value is \`${commentBody}\``);
+        return;
     }
 
     const command = parseString(commentBody);
