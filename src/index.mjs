@@ -4,15 +4,13 @@ import { promises as fs } from 'fs';
 import Octokit from '@octokit/rest';
 
 import ParserMod from './parser/index.js';
-import OperationMod from './operations.mjs';
-
-const { parseString, CommandType } = ParserMod;
-
-const {
+import {
     assignReviewer,
     acceptPullRequest,
     rejectPullRequest
-} = OperationMod;
+} from './operations.mjs';
+
+const { parseString, CommandType } = ParserMod;
 
 (async function main() {
     const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
