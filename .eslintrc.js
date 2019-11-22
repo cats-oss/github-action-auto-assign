@@ -22,5 +22,20 @@ module.exports = {
 
     'rules': {
         'no-magic-numbers': 'off',
-    }
+    },
+
+    'overrides': [
+        {
+            'files': ['*.mjs'],
+            'parserOptions': {
+                'sourceType': 'module',
+            },
+        },
+        {
+            'files': ['*.cjs'],
+            'parserOptions': {
+                'sourceType': 'script',
+            },
+        },
+    ],
 };
