@@ -1,5 +1,3 @@
-'use strict';
-
 const STATUS_LABEL_PREFIX = 'S-';
 
 /**
@@ -14,6 +12,6 @@ function removeStateLabels(input) {
         });
 }
 
-module.exports = Object.freeze({
+export default Object.freeze({
     removeStateLabels
 });

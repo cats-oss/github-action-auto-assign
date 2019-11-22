@@ -1,4 +1,4 @@
-import LabelsMod from './labels.js';
+import LabelsMod from './labels.mjs';
 const { removeStateLabels } = LabelsMod;
 
 // By the document, we need remove & add assignees to replace them.
