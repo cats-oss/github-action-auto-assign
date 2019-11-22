@@ -1,6 +1,5 @@
-'use strict';
-
-const { removeStateLabels } = require('./labels');
+import LabelsMod from './labels.js';
+const { removeStateLabels } = LabelsMod;
 
 // By the document, we need remove & add assignees to replace them.
 //  * https://developer.github.com/v3/issues/assignees/#remove-assignees-from-an-issue
@@ -158,7 +157,7 @@ async function rejectPullRequest(
     await Promise.all([changeLabels, changeAssign]);
 }
 
-module.exports = Object.freeze({
+export default Object.freeze({
     assignReviewer,
     acceptPullRequest,
     rejectPullRequest

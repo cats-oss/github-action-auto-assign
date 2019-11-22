@@ -4,7 +4,7 @@ import { promises as fs } from 'fs';
 import Octokit from '@octokit/rest';
 
 import ParserMod from './parser/index.js';
-import OperationMod from './operations.js';
+import OperationMod from './operations.mjs';
 
 const { parseString, CommandType } = ParserMod;
 
