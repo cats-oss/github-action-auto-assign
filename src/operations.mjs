@@ -1,6 +1,4 @@
-'use strict';
-
-const { removeStateLabels } = require('./labels');
+import { removeStateLabels } from './labels.mjs';
 
 // By the document, we need remove & add assignees to replace them.
 //  * https://developer.github.com/v3/issues/assignees/#remove-assignees-from-an-issue
@@ -36,7 +34,7 @@ async function replaceAssignees(
     return changeAssign;
 }
 
-async function assignReviewer(
+export async function assignReviewer(
     aOctoKit,
     repoName,
     issueNum,
@@ -77,7 +75,7 @@ async function assignReviewer(
     await Promise.all([changeLabels, changeAssign]);
 }
 
-async function acceptPullRequest(
+export async function acceptPullRequest(
     aOctoKit,
     repoName,
     issueNum,
@@ -117,7 +115,7 @@ async function acceptPullRequest(
     await Promise.all([changeLabels, changeAssign]);
 }
 
-async function rejectPullRequest(
+export async function rejectPullRequest(
     aOctoKit,
     repoName,
     issueNum,
@@ -157,9 +155,3 @@ async function rejectPullRequest(
 
     await Promise.all([changeLabels, changeAssign]);
 }
-
-module.exports = Object.freeze({
-    assignReviewer,
-    acceptPullRequest,
-    rejectPullRequest
-});

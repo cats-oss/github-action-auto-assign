@@ -14,7 +14,7 @@ executors:
     build_executor:
         working_directory: *workspace_root
         docker:
-            - image: node:12.2-stretch
+            - image: node:13.2-stretch
 
 
 ###########################################

@@ -1,16 +1,17 @@
-'use strict';
+import * as assert from 'assert';
+import { promises as fs } from 'fs';
 
-const assert = require('assert');
-const fs = require('fs').promises;
+import Octokit from '@octokit/rest';
 
-const Octokit = require('@octokit/rest');
-
-const { parseString, CommandType } = require('./parser/index');
-const {
+import {
+    parseString,
+    CommandType,
+} from './parser/index.mjs';
+import {
     assignReviewer,
     acceptPullRequest,
     rejectPullRequest
-} = require('./operations');
+} from './operations.mjs';
 
 (async function main() {
     const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
