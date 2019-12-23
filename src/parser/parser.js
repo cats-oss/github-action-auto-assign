@@ -1,7 +1,7 @@
 'use strict';
 
+const { TokenType } = require('./token');
 const {
-    TokenType,
     tokenizeString,
 } = require('./tokenizer');
 
