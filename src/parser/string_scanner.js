@@ -1,53 +1,35 @@
 'use strict';
 
-const assert = require('assert');
-
-class BackableStringIterator {
+class StringScanner {
     /**
      * @param {string} str
      */
     constructor(str) {
         this._iter = str[Symbol.iterator]();
-        this._prevCache = null;
-        this._prev = null;
+        this._lookahead = null;
+
+        this.scan();
     }
 
-    next() {
-        const prev = this._prev;
-        if (prev !== null) {
-            this._prev = null;
-            this._prevCache = prev;
-            return {
-                done: false,
-                value: prev,
-            };
-        }
-        assert.strictEqual(prev, null, 'this._prev must be null');
+    lookahead() {
+        return this._lookahead;
+    }
+
+    scan() {
+        const next = this._lookahead;
 
         const { done, value, } = this._iter.next();
         if (done) {
-            this._prevCache = null;
-        } else {
-            this._prevCache = value;
+            this._lookahead = null;
+            return null;
         }
 
-        return {
-            done,
-            value,
-        };
-    }
+        this._lookahead = value;
 
-    back() {
-        assert.notStrictEqual(this._prevCache, null, 'this._prev must not be null');
-        this._prev = this._prevCache;
-        this._prevCache = null;
-    }
-
-    [Symbol.iterator]() {
-        return this;
+        return next;
     }
 }
 
 module.exports = Object.freeze({
-    BackableStringIterator,
+    StringScanner,
 });

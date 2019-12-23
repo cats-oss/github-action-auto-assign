@@ -1,6 +1,6 @@
 'use strict';
 
-const { BackableStringIterator } = require('./string_scanner');
+const { StringScanner } = require('./string_scanner');
 const { Token, TokenType } = require('./token');
 
 /**
@@ -76,7 +76,7 @@ function isPartOfIdentifier(char) {
 
 class Tokenizer {
     constructor(source) {
-        this._sourceIter = new BackableStringIterator(source);
+        this._sourceIter = new StringScanner(source);
         this._hasReachedEof = false;
     }
 
@@ -113,8 +113,8 @@ class Tokenizer {
  *  @returns    {!Token}
  */
 function scanString(charIter) {
-    const { done, value: char, } = charIter.next();
-    if (done) {
+    const char = charIter.scan();
+    if (char === null) {
         const t = new Token(TokenType.Eof, null);
         return t;
     }
@@ -150,17 +150,17 @@ function scanString(charIter) {
 function scanWhiteSpace(charIter, char) {
     let buffer = char;
     for (; ;) {
-        const { done, value } = charIter.next();
-        if (done) {
+        const nextChar = charIter.lookahead();
+        if (nextChar === null) {
             break;
         }
 
-        if (!isWhiteSpace(value)) {
-            charIter.back();
+        if (!isWhiteSpace(nextChar)) {
             break;
         }
 
-        buffer += value;
+        buffer += nextChar;
+        charIter.scan();
     }
 
     const t = new Token(TokenType.WhiteSpace, buffer);
@@ -175,17 +175,17 @@ function scanWhiteSpace(charIter, char) {
 function scanIdentifier(charIter, char) {
     let buffer = char;
     for (; ;) {
-        const { done, value } = charIter.next();
-        if (done) {
+        const nextChar = charIter.lookahead();
+        if (nextChar === null) {
             break;
         }
 
-        if (!isPartOfIdentifier(value)) {
-            charIter.back();
+        if (!isPartOfIdentifier(nextChar)) {
             break;
         }
 
-        buffer += value;
+        buffer += nextChar;
+        charIter.scan();
     }
 
     const t = new Token(TokenType.Identifier, buffer);
@@ -200,24 +200,24 @@ function scanIdentifier(charIter, char) {
 function scanOperator(charIter, char) {
     let buffer = char;
 
-    const { done, value } = charIter.next();
-    if (done) {
+    const nextChar = charIter.lookahead();
+    if (nextChar === null) {
         const t = new Token(TokenType.Invalid, buffer);
         return t;
     }
 
-    if (!isOperatorFragment(value)) {
+    if (!isOperatorFragment(nextChar)) {
         const t = new Token(TokenType.Invalid, buffer);
         return t;
     }
 
-    if (char !== value) {
-        charIter.back();
+    if (char !== nextChar) {
         const t = new Token(TokenType.Invalid, buffer);
         return t;
     }
 
-    buffer += value;
+    buffer += nextChar;
+    charIter.scan();
     const t = new Token(TokenType.Operator, buffer);
     return t;
 }
@@ -243,29 +243,31 @@ function scanSeparator(char) {
 function scanReviewDirective(charIter, char) {
     let buffer = char;
 
-    const { done, value } = charIter.next();
-    if (done) {
-        const t = new Token(TokenType.ReviewDirective, char);
-        return t;
+    const charNext = charIter.lookahead();
+    if (charNext === null) {
+        return scanIdentifier(charIter, char);
     }
 
-    if (isReviewOperator(value)) {
-        buffer += value;
-        switch (value) {
+    if (isReviewOperator(charNext)) {
+        buffer += charNext;
+        switch (charNext) {
             case CHAR_REVIEW_OPERATOR_QUESTION:
+                charIter.scan();
                 return new Token(TokenType.AssignReviewerDirective, buffer);
             case CHAR_REVIEW_OPERATOR_PLUS:
+                charIter.scan();
                 return new Token(TokenType.AcceptPullRequestDirective, buffer);
             case CHAR_REVIEW_OPERATOR_EQUAL:
+                charIter.scan();
                 return new Token(TokenType.AcceptPullRequestWithReviewerNameDirective, buffer);
             case CHAR_REVIEW_OPERATOR_MINUS:
+                charIter.scan();
                 return new Token(TokenType.RejectPullRequestDirective, buffer);
             default:
-                throw new RangeError(`unrachable with isReviewOperator: ${value}`);
+                throw new RangeError(`unrachable with isReviewOperator: ${charNext}`);
         }
     }
 
-    charIter.back();
     return scanIdentifier(charIter, char);
 }
 
@@ -276,17 +278,17 @@ function scanReviewDirective(charIter, char) {
 function scanUsername(charIter) {
     let buffer = '';
     for (; ;) {
-        const { done, value } = charIter.next();
-        if (done) {
+        const charNext = charIter.lookahead();
+        if (charNext === null) {
             break;
         }
 
-        if (!isPartOfIdentifier(value)) {
-            charIter.back();
+        if (!isPartOfIdentifier(charNext)) {
             break;
         }
 
-        buffer += value;
+        buffer += charNext;
+        charIter.scan();
     }
 
     const t = new Token(TokenType.UserName, buffer);
