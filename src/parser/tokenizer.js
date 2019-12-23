@@ -1,81 +1,7 @@
 'use strict';
 
-const assert = require('assert');
-
-class BackableStringIterator {
-    /**
-     * @param {string} str
-     */
-    constructor(str) {
-        this._iter = str[Symbol.iterator]();
-        this._prevCache = null;
-        this._prev = null;
-    }
-
-    next() {
-        const prev = this._prev;
-        if (prev !== null) {
-            this._prev = null;
-            this._prevCache = prev;
-            return {
-                done: false,
-                value: prev,
-            };
-        }
-        assert.strictEqual(prev, null, 'this._prev must be null');
-
-        const { done, value, } = this._iter.next();
-        if (done) {
-            this._prevCache = null;
-        } else {
-            this._prevCache = value;
-        }
-
-        return {
-            done,
-            value,
-        };
-    }
-
-    back() {
-        assert.notStrictEqual(this._prevCache, null, 'this._prev must not be null');
-        this._prev = this._prevCache;
-        this._prevCache = null;
-    }
-
-    [Symbol.iterator]() {
-        return this;
-    }
-}
-
-const TokenType = Object.freeze({
-    WhiteSpace: 0,
-    Eof: 1,
-    Unknown: 2,
-    Invalid: 3,
-
-    Identifier: 10,
-    UserName: 11,
-
-    Separator: 20,
-    ListSeparator: 21,
-
-    ReviewDirective: 30,
-    AssignReviewerDirective: 31,
-    AcceptPullRequestDirective: 32,
-    AcceptPullRequestWithReviewerNameDirective: 33,
-    RejectPullRequestDirective: 34,
-
-    Operator: 40,
-});
-
-class Token {
-    constructor(type, val) {
-        this.type = type;
-        this.value = val;
-        Object.freeze(this);
-    }
-}
+const { StringScanner } = require('./string_scanner');
+const { Token, TokenType } = require('./token');
 
 /**
  *  @param {string} char
@@ -150,7 +76,7 @@ function isPartOfIdentifier(char) {
 
 class Tokenizer {
     constructor(source) {
-        this._sourceIter = new BackableStringIterator(source);
+        this._sourceIter = new StringScanner(source);
         this._hasReachedEof = false;
     }
 
@@ -187,8 +113,8 @@ class Tokenizer {
  *  @returns    {!Token}
  */
 function scanString(charIter) {
-    const { done, value: char, } = charIter.next();
-    if (done) {
+    const char = charIter.scan();
+    if (char === null) {
         const t = new Token(TokenType.Eof, null);
         return t;
     }
@@ -224,17 +150,17 @@ function scanString(charIter) {
 function scanWhiteSpace(charIter, char) {
     let buffer = char;
     for (; ;) {
-        const { done, value } = charIter.next();
-        if (done) {
+        const nextChar = charIter.lookahead();
+        if (nextChar === null) {
             break;
         }
 
-        if (!isWhiteSpace(value)) {
-            charIter.back();
+        if (!isWhiteSpace(nextChar)) {
             break;
         }
 
-        buffer += value;
+        buffer += nextChar;
+        charIter.scan();
     }
 
     const t = new Token(TokenType.WhiteSpace, buffer);
@@ -249,17 +175,17 @@ function scanWhiteSpace(charIter, char) {
 function scanIdentifier(charIter, char) {
     let buffer = char;
     for (; ;) {
-        const { done, value } = charIter.next();
-        if (done) {
+        const nextChar = charIter.lookahead();
+        if (nextChar === null) {
             break;
         }
 
-        if (!isPartOfIdentifier(value)) {
-            charIter.back();
+        if (!isPartOfIdentifier(nextChar)) {
             break;
         }
 
-        buffer += value;
+        buffer += nextChar;
+        charIter.scan();
     }
 
     const t = new Token(TokenType.Identifier, buffer);
@@ -274,24 +200,24 @@ function scanIdentifier(charIter, char) {
 function scanOperator(charIter, char) {
     let buffer = char;
 
-    const { done, value } = charIter.next();
-    if (done) {
+    const nextChar = charIter.lookahead();
+    if (nextChar === null) {
         const t = new Token(TokenType.Invalid, buffer);
         return t;
     }
 
-    if (!isOperatorFragment(value)) {
+    if (!isOperatorFragment(nextChar)) {
         const t = new Token(TokenType.Invalid, buffer);
         return t;
     }
 
-    if (char !== value) {
-        charIter.back();
+    if (char !== nextChar) {
         const t = new Token(TokenType.Invalid, buffer);
         return t;
     }
 
-    buffer += value;
+    buffer += nextChar;
+    charIter.scan();
     const t = new Token(TokenType.Operator, buffer);
     return t;
 }
@@ -317,29 +243,31 @@ function scanSeparator(char) {
 function scanReviewDirective(charIter, char) {
     let buffer = char;
 
-    const { done, value } = charIter.next();
-    if (done) {
-        const t = new Token(TokenType.ReviewDirective, char);
-        return t;
+    const charNext = charIter.lookahead();
+    if (charNext === null) {
+        return scanIdentifier(charIter, char);
     }
 
-    if (isReviewOperator(value)) {
-        buffer += value;
-        switch (value) {
+    if (isReviewOperator(charNext)) {
+        buffer += charNext;
+        switch (charNext) {
             case CHAR_REVIEW_OPERATOR_QUESTION:
+                charIter.scan();
                 return new Token(TokenType.AssignReviewerDirective, buffer);
             case CHAR_REVIEW_OPERATOR_PLUS:
+                charIter.scan();
                 return new Token(TokenType.AcceptPullRequestDirective, buffer);
             case CHAR_REVIEW_OPERATOR_EQUAL:
+                charIter.scan();
                 return new Token(TokenType.AcceptPullRequestWithReviewerNameDirective, buffer);
             case CHAR_REVIEW_OPERATOR_MINUS:
+                charIter.scan();
                 return new Token(TokenType.RejectPullRequestDirective, buffer);
             default:
-                throw new RangeError(`unrachable with isReviewOperator: ${value}`);
+                throw new RangeError(`unrachable with isReviewOperator: ${charNext}`);
         }
     }
 
-    charIter.back();
     return scanIdentifier(charIter, char);
 }
 
@@ -350,17 +278,17 @@ function scanReviewDirective(charIter, char) {
 function scanUsername(charIter) {
     let buffer = '';
     for (; ;) {
-        const { done, value } = charIter.next();
-        if (done) {
+        const charNext = charIter.lookahead();
+        if (charNext === null) {
             break;
         }
 
-        if (!isPartOfIdentifier(value)) {
-            charIter.back();
+        if (!isPartOfIdentifier(charNext)) {
             break;
         }
 
-        buffer += value;
+        buffer += charNext;
+        charIter.scan();
     }
 
     const t = new Token(TokenType.UserName, buffer);
