@@ -15,7 +15,7 @@ lint: eslint
 
 .PHONY: eslint
 eslint:
-	$(NPM_BIN_DIR)/eslint --ext=js,jsx,mjs $(CURDIR)
+	$(NPM_BIN_DIR)/eslint --ext=js,jsx,mjs,cjs $(CURDIR)
 
 .PHONY: ava
 ava:
