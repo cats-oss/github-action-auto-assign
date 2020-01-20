@@ -8,9 +8,6 @@ module.exports = function resolveAvaConfig() {
             'src/**/__tests__/**/*.js'
         ],
         'babel': {
-            'extensions': [
-                'js'
-            ],
             'testOptions': {
                 'presets': [],
                 'babelrc': false
