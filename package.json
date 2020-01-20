@@ -13,7 +13,7 @@
     "eslint-config-abema": "https://github.com/cats-oss/eslint-config-abema/archive/b7d54b8100028dcb39b809ea9fbdc34a2ce5a2cd.tar.gz"
   },
   "dependencies": {
-    "@octokit/rest": "^16.35.0"
+    "@octokit/rest": "^16.37.0"
   },
   "ava": {
     "files": [
