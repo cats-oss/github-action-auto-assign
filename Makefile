@@ -19,7 +19,7 @@ eslint:
 
 .PHONY: ava
 ava:
-	$(NPM_BIN_DIR)/ava
+	$(NPM_BIN_DIR)/ava --config $(CURDIR)/ava.config.cjs
 
 # CI
 ci: test
