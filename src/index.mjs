@@ -1,7 +1,9 @@
 import * as assert from 'assert';
 import { promises as fs } from 'fs';
 
-import Octokit from '@octokit/rest';
+import OctokitMod from '@octokit/rest';
+
+const { Octokit } = OctokitMod;
 
 import {
     parseString,
