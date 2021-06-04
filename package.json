@@ -16,6 +16,6 @@
     "typescript": "^4.3.2"
   },
   "dependencies": {
-    "@octokit/rest": "^17.8.0"
+    "@octokit/rest": "^17.11.2"
   }
 }
