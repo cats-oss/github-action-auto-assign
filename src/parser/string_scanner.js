@@ -1,5 +1,3 @@
-'use strict';
-
 class StringScanner {
     /**
      * @param {string} str
@@ -30,6 +28,6 @@ class StringScanner {
     }
 }
 
-module.exports = Object.freeze({
+export {
     StringScanner,
-});
+};

@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { promises as fs } from 'fs';
+import * as fs from 'fs/promises';
 
 import OctokitMod from '@octokit/rest';
 
@@ -8,12 +8,12 @@ const { Octokit } = OctokitMod;
 import {
     parseString,
     CommandType,
-} from './parser/index.mjs';
+} from './parser/index.js';
 import {
     assignReviewer,
     acceptPullRequest,
     rejectPullRequest
-} from './operations.mjs';
+} from './operations.js';
 
 (async function main() {
     const GITHUB_TOKEN = process.env.GITHUB_TOKEN;

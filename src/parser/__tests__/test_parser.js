@@ -1,12 +1,10 @@
 import test from 'ava';
 
-import ParserMod from '../parser';
-
-const {
+import {
     CommandType,
     parseString,
     Command,
-} = ParserMod;
+} from '../parser.js';
 
 function testCase(input, expected) {
     return {
