@@ -14,7 +14,7 @@ executors:
     build_executor:
         working_directory: *workspace_root
         docker:
-            - image: node:13.6-buster
+            - image: node:16-buster
 
 
 ###########################################
