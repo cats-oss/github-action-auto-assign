@@ -3,7 +3,7 @@ node_modules/*
 src/**/__tests__/*
 
 .eslintignore
-.eslintrc.js
+.eslintrc.cjs
 LICENSE.MIT
 Makefile
 README.md

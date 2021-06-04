@@ -1,7 +1,5 @@
-'use strict';
-
-const { StringScanner } = require('./string_scanner');
-const { Token, TokenType } = require('./token');
+import { StringScanner } from './string_scanner.js';
+import { Token, TokenType } from './token.js';
 
 /**
  *  @param {string} char
@@ -317,7 +315,7 @@ function* tokenizeString(string) {
     yield* tokenizeHighLevel(string);
 }
 
-module.exports = Object.freeze({
+export {
     TokenType,
     tokenizeString,
-});
+};

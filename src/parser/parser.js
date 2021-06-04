@@ -1,9 +1,7 @@
-'use strict';
-
-const { TokenType } = require('./token');
-const {
+import { TokenType } from './token.js';
+import {
     tokenizeString,
-} = require('./tokenizer');
+} from './tokenizer.js';
 
 const CommandType = Object.freeze({
     AcceptPullRequest: 1,
@@ -136,10 +134,10 @@ function parseAssignReviewer(tokenStream) {
     return c;
 }
 
-module.exports = Object.freeze({
+export {
     parseString,
     CommandType,
 
     // export for testing
     Command,
-});
+};

@@ -1,5 +1,3 @@
-'use strict';
-
 const TokenType = Object.freeze({
     WhiteSpace: 0,
     Eof: 1,
@@ -29,7 +27,7 @@ class Token {
     }
 }
 
-module.exports = Object.freeze({
+export {
     TokenType,
     Token,
-});
+};

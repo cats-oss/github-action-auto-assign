@@ -1,4 +1,4 @@
-import { removeStateLabels } from './labels.mjs';
+import { removeStateLabels } from './labels.js';
 
 // By the document, we need remove & add assignees to replace them.
 //  * https://developer.github.com/v3/issues/assignees/#remove-assignees-from-an-issue
