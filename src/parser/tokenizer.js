@@ -73,24 +73,45 @@ function isPartOfIdentifier(char) {
 }
 
 class Tokenizer {
+    /**
+     * @param {string} source
+     */
     constructor(source) {
+        /**
+         * @type {StringScanner|null}
+         */
         this._sourceIter = new StringScanner(source);
+        /**
+         *  @type {boolean}
+         */
         this._hasReachedEof = false;
     }
 
+    /**
+     *  @returns    {void}
+     */
     _destroy() {
         this._sourceIter = null;
         this._hasReachedEof = true;
     }
 
+    /**
+     * @returns {IteratorResult<Token, undefined>}
+     */
     next() {
         if (this._hasReachedEof) {
             return {
                 done: true,
+                value: undefined,
             };
         }
 
-        const value = scanString(this._sourceIter);
+        const source = this._sourceIter;
+        if (!source) {
+            throw new TypeError('this has been destroyed');
+        }
+
+        const value = scanString(source);
         if (value.type === TokenType.Eof) {
             this._destroy();
         }
@@ -107,7 +128,7 @@ class Tokenizer {
 }
 
 /**
- *  @param {!BackableStringIterator} charIter
+ *  @param {StringScanner} charIter
  *  @returns    {!Token}
  */
 function scanString(charIter) {
@@ -141,7 +162,7 @@ function scanString(charIter) {
 }
 
 /**
- *  @param {!BackableStringIterator} charIter
+ *  @param {StringScanner} charIter
  *  @param  {string}  char
  *  @returns    {!Token}
  */
@@ -166,7 +187,7 @@ function scanWhiteSpace(charIter, char) {
 }
 
 /**
- *  @param {!BackableStringIterator} charIter
+ *  @param {StringScanner} charIter
  *  @param  {string}  char
  *  @returns    {!Token}
  */
@@ -191,7 +212,7 @@ function scanIdentifier(charIter, char) {
 }
 
 /**
- *  @param {!BackableStringIterator} charIter
+ *  @param {StringScanner} charIter
  *  @param  {string}  char
  *  @returns    {!Token}
  */
@@ -234,7 +255,7 @@ function scanSeparator(char) {
 }
 
 /**
- *  @param {!BackableStringIterator} charIter
+ *  @param {StringScanner} charIter
  *  @param  {string}  char
  *  @returns    {!Token}
  */
@@ -270,7 +291,7 @@ function scanReviewDirective(charIter, char) {
 }
 
 /**
- *  @param {!BackableStringIterator} charIter
+ *  @param {StringScanner} charIter
  *  @returns    {!Token}
  */
 function scanUsername(charIter) {
@@ -293,6 +314,9 @@ function scanUsername(charIter) {
     return t;
 }
 
+/**
+ * @param {string} string
+ */
 function* tokenizeHighLevel(string) {
     const tokenStream = new Tokenizer(string);
     for (const token of tokenStream) {
@@ -311,6 +335,9 @@ function* tokenizeHighLevel(string) {
     }
 }
 
+/**
+ * @param {string} string
+ */
 function* tokenizeString(string) {
     yield* tokenizeHighLevel(string);
 }
