@@ -7,11 +7,5 @@ module.exports = function resolveAvaConfig() {
         'files': [
             'src/**/__tests__/**/*.{js,cjs,mjs}'
         ],
-        'babel': {
-            'testOptions': {
-                'presets': [],
-                'babelrc': false
-            }
-        }
     };
 };
