@@ -1,8 +1,17 @@
 import { removeStateLabels } from './labels.js';
 
-// By the document, we need remove & add assignees to replace them.
-//  * https://developer.github.com/v3/issues/assignees/#remove-assignees-from-an-issue
-//  * https://developer.github.com/v3/issues/assignees/#add-assignees-to-an-issue
+/**
+ *  By the document, we need remove & add assignees to replace them.
+ *      * https://developer.github.com/v3/issues/assignees/#remove-assignees-from-an-issue
+ *      * https://developer.github.com/v3/issues/assignees/#add-assignees-to-an-issue
+ *
+ * @param {import('@octokit/rest').Octokit} aOctoKit
+ * @param {string} owner
+ * @param {string} repo
+ * @param {number} issueNum
+ * @param {Array<string>} currentAssignees
+ * @param {Array<string>} nextAssignees
+ */
 async function replaceAssignees(
     aOctoKit,
     owner,
@@ -34,6 +43,13 @@ async function replaceAssignees(
     return changeAssign;
 }
 
+/**
+ * @param {import('@octokit/rest').Octokit} aOctoKit
+ * @param {string} repoName
+ * @param {number} issueNum
+ * @param {Array<string>} currentAssignees
+ * @param {Array<string>} nextAssignees
+ */
 export async function assignReviewer(
     aOctoKit,
     repoName,
@@ -75,6 +91,13 @@ export async function assignReviewer(
     await Promise.all([changeLabels, changeAssign]);
 }
 
+/**
+ * @param {import('@octokit/rest').Octokit} aOctoKit
+ * @param {string} repoName
+ * @param {number} issueNum
+ * @param {Array<string>} currentAssignees
+ * @param {Array<string>} nextAssignees
+ */
 export async function acceptPullRequest(
     aOctoKit,
     repoName,
@@ -115,6 +138,13 @@ export async function acceptPullRequest(
     await Promise.all([changeLabels, changeAssign]);
 }
 
+/**
+ * @param {import('@octokit/rest').Octokit} aOctoKit
+ * @param {string} repoName
+ * @param {number} issueNum
+ * @param {Array<string>} currentAssignees
+ * @param {Array<string>} nextAssignees
+ */
 export async function rejectPullRequest(
     aOctoKit,
     repoName,

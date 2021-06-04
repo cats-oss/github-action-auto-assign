@@ -1,3 +1,7 @@
+/**
+ *  @readonly
+ *  @enum   {number}
+ */
 const TokenType = Object.freeze({
     WhiteSpace: 0,
     Eof: 1,
@@ -20,6 +24,10 @@ const TokenType = Object.freeze({
 });
 
 class Token {
+    /**
+     * @param {TokenType} type
+     * @param {string|null} val
+     */
     constructor(type, val) {
         this.type = type;
         this.value = val;
