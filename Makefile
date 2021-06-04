@@ -9,9 +9,13 @@ help:
 	@exit 1
 
 # Test
-test: lint ava ## Run tests & lints for all.
+test: lint ava typecheck ## Run tests & lints for all.
 
 lint: eslint
+
+.PHONY: typecheck
+typecheck:
+	$(NPM_BIN_DIR)/tsc --noEmit --project $(CURDIR)/tsconfig.json
 
 .PHONY: eslint
 eslint:
