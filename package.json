@@ -10,7 +10,7 @@
   "license": "MIT",
   "devDependencies": {
     "ava": "^3.15.0",
-    "eslint": "^7.27.0",
+    "eslint": "^7.28.0",
     "eslint-config-abema": "https://github.com/cats-oss/eslint-config-abema/archive/72a943d6271704c5e87cf22d803f409a735398b7.tar.gz",
     "typescript": "^4.3.2"
   },
