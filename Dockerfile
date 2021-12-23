@@ -1,4 +1,4 @@
-FROM node:16.11.1-buster-slim
+FROM node:16.13.1-buster-slim
 
 ADD src/ /app/src/
 ADD package.json /app/package.json
