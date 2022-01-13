@@ -25,6 +25,14 @@ function isString(value) {
     );
 }
 
+/**
+ *  @param   {Array<{ login: string }>} assignees
+ *  @returns {Array<string>}
+ */
+function getCurrentAssignee(assignees) {
+    return assignees.map((user) => user.login);
+}
+
 (async function main() {
     const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
     isString(GITHUB_TOKEN);
@@ -67,13 +75,13 @@ function isString(value) {
             issueCreator = eventData.issue.user.login;
             issueNumber = eventData.issue.number;
             commentBody = eventData.comment.body;
-            currentAssignee = eventData.issue.assignees.map((user) => user.login);
+            currentAssignee = getCurrentAssignee(eventData.issue.assignees);
             break;
         case 'pull_request_review':
             issueCreator = eventData.pull_request.user.login;
             issueNumber = eventData.pull_request.number;
             commentBody = eventData.review.body;
-            currentAssignee = eventData.pull_request.assignees.map((user) => user.login);
+            currentAssignee = getCurrentAssignee(eventData.pull_request.assignees);
             break;
         default:
             throw new RangeError('unreachable!');
