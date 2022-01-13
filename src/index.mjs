@@ -15,27 +15,27 @@ import {
     rejectPullRequest
 } from './operations.js';
 
+/**
+ *  @param   {unknown} value
+ *  @returns {asserts value is string}
+ */
+function isString(value) {
+    assert.strictEqual(
+        typeof value,
+        'string',
+        `${value} should be string`
+    );
+}
+
 (async function main() {
     const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-    assert.strictEqual(
-        typeof GITHUB_TOKEN,
-        'string',
-        'GITHUB_TOKEN should be string'
-    );
+    isString(GITHUB_TOKEN);
 
     const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY;
-    assert.strictEqual(
-        typeof GITHUB_REPOSITORY,
-        'string',
-        'GITHUB_REPOSITORY should be string'
-    );
+    isString(GITHUB_REPOSITORY);
 
     const GITHUB_EVENT_NAME = process.env.GITHUB_EVENT_NAME;
-    assert.strictEqual(
-        typeof GITHUB_EVENT_NAME,
-        'string',
-        'GITHUB_EVENT_NAME should be string'
-    );
+    isString(GITHUB_EVENT_NAME);
     if (
         GITHUB_EVENT_NAME !== 'issue_comment' &&
         GITHUB_EVENT_NAME !== 'pull_request_review'
@@ -44,11 +44,7 @@ import {
     }
 
     const GITHUB_EVENT_PATH = process.env.GITHUB_EVENT_PATH;
-    assert.strictEqual(
-        typeof GITHUB_EVENT_PATH,
-        'string',
-        'GITHUB_EVENT_PATH should be string'
-    );
+    isString(GITHUB_EVENT_PATH);
 
     const eventDataString = await fs.readFile(GITHUB_EVENT_PATH, {
         encoding: 'utf8',
