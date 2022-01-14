@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import * as assert from 'assert/strict';
 import * as fs from 'fs/promises';
 
 import { Octokit } from '@octokit/rest';
